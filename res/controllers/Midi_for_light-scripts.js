@@ -1,3 +1,6 @@
+/**
+ *
+ */
 function midi_for_light() {}
 
 /*
@@ -84,18 +87,18 @@ midi_for_light.init = function(id) { // called when the MIDI device is opened & 
 
     engine.connectControl("[Master]", "crossfader", "midi_for_light.crossfaderChange");
 
-    if (enable_vu_meter_global === true) midi_for_light.vu_meter_timer = engine.beginTimer(40, "midi_for_light.vuMeter()");
+    if (enable_vu_meter_global === true) { midi_for_light.vu_meter_timer = engine.beginTimer(40, "midi_for_light.vuMeter()"); }
 
     // Check midi_channel if value valid. Possible range is 1 to 16.
-    if (midi_channel > 16) midi_channel = 16;
-    if (midi_channel < 1) midi_channel = 1;
+    if (midi_channel > 16) { midi_channel = 16; }
+    if (midi_channel < 1) { midi_channel = 1; }
 
-    for (var i = 0; i <= 3; i++) {
+    for (let i = 0; i <= 3; i++) {
         deck_beat_watchdog_timer[i] = engine.beginTimer(beat_watchdog_time, "midi_for_light.deckBeatWatchdog(" + i + ")");
         engine.connectControl("[Channel" + (i + 1) + "]", "beat_active", "midi_for_light.deckBeatOutputToMidi");
         engine.connectControl("[Channel" + (i + 1) + "]", "volume", "midi_for_light.deckVolumeChange");
         engine.connectControl("[Channel" + (i + 1) + "]", "play", "midi_for_light.deckButtonPlay");
-        if (enable_mtc_timecode === true) engine.connectControl("[Channel" + (i + 1) + "]", "playposition", "midi_for_light.sendMidiMtcFullFrame");
+        if (enable_mtc_timecode === true) { engine.connectControl("[Channel" + (i + 1) + "]", "playposition", "midi_for_light.sendMidiMtcFullFrame"); }
     }
 
     midi_for_light.crossfaderChange();
@@ -113,7 +116,7 @@ midi_for_light.shutdown = function(id) { // called when the MIDI device is close
 };
 
 midi_for_light.deckButtonPlay = function(value, group, control) { // called when click a play button
-    var deck = parseInt(group.substring(8, 9)) - 1;
+    const deck = parseInt(group.substring(8, 9)) - 1;
 
     if (value == 1) { // deck play on
         engine.stopTimer(deck_beat_watchdog_timer[deck]);
@@ -135,19 +138,19 @@ midi_for_light.deckButtonPlay = function(value, group, control) { // called when
 midi_for_light.deckBeatWatchdog = function(deck) { //  if current deck beat lost without reason, search a new current deck
     engine.stopTimer(deck_beat_watchdog_timer[deck]);
     beat_watchdog[deck] = true;
-    if (midi_for_light.volumebeat === false) midi_for_light.crossfaderChange();
+    if (midi_for_light.volumebeat === false) { midi_for_light.crossfaderChange(); }
 };
 
 midi_for_light.vuMeter = function() { // read, calculate and send vu-meter values
     // set output range for MIDI
-    var vu_out_min = 0;
-    var vu_out_max = 127;
-    var vu_out_range = vu_out_max - vu_out_min;
+    const vu_out_min = 0;
+    const vu_out_max = 127;
+    const vu_out_range = vu_out_max - vu_out_min;
 
     // get current value Vu-Meter
-    var vu_mono_current = engine.getValue("[Master]", "VuMeter");
-    var vu_left_current = engine.getValue("[Master]", "VuMeterL");
-    var vu_right_current = engine.getValue("[Master]", "VuMeterR");
+    let vu_mono_current = engine.getValue("[Master]", "VuMeter");
+    let vu_left_current = engine.getValue("[Master]", "VuMeterL");
+    let vu_right_current = engine.getValue("[Master]", "VuMeterR");
 
     // arraycounter
     vu_array_fill_counter++;
@@ -161,29 +164,29 @@ midi_for_light.vuMeter = function() { // read, calculate and send vu-meter value
     vu_array_right[vu_array_fill_counter] = vu_right_current;
 
     // search min- and max VU in array
-    var vu_mono_average_min = vu_array_mono[1];
-    var vu_mono_average_mid = 0;
-    var vu_mono_average_max = vu_array_mono[1];
-    var vu_left_average_min = vu_array_left[1];
-    var vu_left_average_mid = 0;
-    var vu_left_average_max = vu_array_left[1];
-    var vu_right_average_min = vu_array_right[1];
-    var vu_right_average_mid = 0;
-    var vu_right_average_max = vu_array_right[1];
-    var z = 1;
+    let vu_mono_average_min = vu_array_mono[1];
+    let vu_mono_average_mid = 0;
+    let vu_mono_average_max = vu_array_mono[1];
+    let vu_left_average_min = vu_array_left[1];
+    let vu_left_average_mid = 0;
+    let vu_left_average_max = vu_array_left[1];
+    let vu_right_average_min = vu_array_right[1];
+    let vu_right_average_mid = 0;
+    let vu_right_average_max = vu_array_right[1];
+    let z = 1;
     while (z < vu_array_fill_maximum) {
         // mono
-        if (vu_array_mono[z] < vu_mono_average_min) vu_mono_average_min = vu_array_mono[z];
+        if (vu_array_mono[z] < vu_mono_average_min) { vu_mono_average_min = vu_array_mono[z]; }
         vu_mono_average_mid = vu_mono_average_mid + vu_array_mono[z];
-        if (vu_array_mono[z] > vu_mono_average_max) vu_mono_average_max = vu_array_mono[z];
+        if (vu_array_mono[z] > vu_mono_average_max) { vu_mono_average_max = vu_array_mono[z]; }
         // left
-        if (vu_array_left[z] < vu_left_average_min) vu_left_average_min = vu_array_left[z];
+        if (vu_array_left[z] < vu_left_average_min) { vu_left_average_min = vu_array_left[z]; }
         vu_left_average_mid = vu_left_average_mid + vu_array_left[z];
-        if (vu_array_left[z] > vu_left_average_max) vu_left_average_max = vu_array_left[z];
+        if (vu_array_left[z] > vu_left_average_max) { vu_left_average_max = vu_array_left[z]; }
         // right
-        if (vu_array_right[z] < vu_right_average_min) vu_right_average_min = vu_array_right[z];
+        if (vu_array_right[z] < vu_right_average_min) { vu_right_average_min = vu_array_right[z]; }
         vu_right_average_mid = vu_right_average_mid + vu_array_right[z];
-        if (vu_array_right[z] > vu_right_average_max) vu_right_average_max = vu_array_right[z];
+        if (vu_array_right[z] > vu_right_average_max) { vu_right_average_max = vu_array_right[z]; }
         z++;
     }
 
@@ -202,24 +205,24 @@ midi_for_light.vuMeter = function() { // read, calculate and send vu-meter value
     }
 
     // calculate average_fit
-    var vu_mono_average_fit = (vu_mono_current - vu_mono_average_min) / (vu_mono_average_max - vu_mono_average_min);
-    var vu_left_average_fit = (vu_left_current - vu_left_average_min) / (vu_left_average_max - vu_left_average_min);
-    var vu_right_average_fit = (vu_right_current - vu_right_average_min) / (vu_right_average_max - vu_right_average_min);
+    let vu_mono_average_fit = (vu_mono_current - vu_mono_average_min) / (vu_mono_average_max - vu_mono_average_min);
+    let vu_left_average_fit = (vu_left_current - vu_left_average_min) / (vu_left_average_max - vu_left_average_min);
+    let vu_right_average_fit = (vu_right_current - vu_right_average_min) / (vu_right_average_max - vu_right_average_min);
 
     // calculate VU-meter and output
     if (enable_vu_mono_current_meter === true) {
-        var vu_mono_current_meter1 = (vu_mono_current * 4) - 0;
-        if (vu_mono_current_meter1 < 0) vu_mono_current_meter1 = 0;
-        if (vu_mono_current_meter1 > 1) vu_mono_current_meter1 = 1;
-        var vu_mono_current_meter2 = (vu_mono_current * 4) - 1;
-        if (vu_mono_current_meter2 < 0) vu_mono_current_meter2 = 0;
-        if (vu_mono_current_meter2 > 1) vu_mono_current_meter2 = 1;
-        var vu_mono_current_meter3 = (vu_mono_current * 4) - 2;
-        if (vu_mono_current_meter3 < 0) vu_mono_current_meter3 = 0;
-        if (vu_mono_current_meter3 > 1) vu_mono_current_meter3 = 1;
-        var vu_mono_current_meter4 = (vu_mono_current * 4) - 3;
-        if (vu_mono_current_meter4 < 0) vu_mono_current_meter4 = 0;
-        if (vu_mono_current_meter4 > 1) vu_mono_current_meter4 = 1;
+        let vu_mono_current_meter1 = (vu_mono_current * 4) - 0;
+        if (vu_mono_current_meter1 < 0) { vu_mono_current_meter1 = 0; }
+        if (vu_mono_current_meter1 > 1) { vu_mono_current_meter1 = 1; }
+        let vu_mono_current_meter2 = (vu_mono_current * 4) - 1;
+        if (vu_mono_current_meter2 < 0) { vu_mono_current_meter2 = 0; }
+        if (vu_mono_current_meter2 > 1) { vu_mono_current_meter2 = 1; }
+        let vu_mono_current_meter3 = (vu_mono_current * 4) - 2;
+        if (vu_mono_current_meter3 < 0) { vu_mono_current_meter3 = 0; }
+        if (vu_mono_current_meter3 > 1) { vu_mono_current_meter3 = 1; }
+        let vu_mono_current_meter4 = (vu_mono_current * 4) - 3;
+        if (vu_mono_current_meter4 < 0) { vu_mono_current_meter4 = 0; }
+        if (vu_mono_current_meter4 > 1) { vu_mono_current_meter4 = 1; }
         vu_mono_current_meter1 = (vu_mono_current_meter1 * vu_out_range) + vu_out_min;
         vu_mono_current_meter2 = (vu_mono_current_meter2 * vu_out_range) + vu_out_min;
         vu_mono_current_meter3 = (vu_mono_current_meter3 * vu_out_range) + vu_out_min;
@@ -230,18 +233,18 @@ midi_for_light.vuMeter = function() { // read, calculate and send vu-meter value
         midi.sendShortMsg(0x8F + midi_channel, 0x48, vu_mono_current_meter4); // dez.72, okt.6 note C
     }
     if (enable_vu_mono_average_meter === true) {
-        var vu_mono_average_meter1 = (vu_mono_average_fit * 4) - 0;
-        if (vu_mono_average_meter1 < 0) vu_mono_average_meter1 = 0;
-        if (vu_mono_average_meter1 > 1) vu_mono_average_meter1 = 1;
-        var vu_mono_average_meter2 = (vu_mono_average_fit * 4) - 1;
-        if (vu_mono_average_meter2 < 0) vu_mono_average_meter2 = 0;
-        if (vu_mono_average_meter2 > 1) vu_mono_average_meter2 = 1;
-        var vu_mono_average_meter3 = (vu_mono_average_fit * 4) - 2;
-        if (vu_mono_average_meter3 < 0) vu_mono_average_meter3 = 0;
-        if (vu_mono_average_meter3 > 1) vu_mono_average_meter3 = 1;
-        var vu_mono_average_meter4 = (vu_mono_average_fit * 4) - 3;
-        if (vu_mono_average_meter4 < 0) vu_mono_average_meter4 = 0;
-        if (vu_mono_average_meter4 > 1) vu_mono_average_meter4 = 1;
+        let vu_mono_average_meter1 = (vu_mono_average_fit * 4) - 0;
+        if (vu_mono_average_meter1 < 0) { vu_mono_average_meter1 = 0; }
+        if (vu_mono_average_meter1 > 1) { vu_mono_average_meter1 = 1; }
+        let vu_mono_average_meter2 = (vu_mono_average_fit * 4) - 1;
+        if (vu_mono_average_meter2 < 0) { vu_mono_average_meter2 = 0; }
+        if (vu_mono_average_meter2 > 1) { vu_mono_average_meter2 = 1; }
+        let vu_mono_average_meter3 = (vu_mono_average_fit * 4) - 2;
+        if (vu_mono_average_meter3 < 0) { vu_mono_average_meter3 = 0; }
+        if (vu_mono_average_meter3 > 1) { vu_mono_average_meter3 = 1; }
+        let vu_mono_average_meter4 = (vu_mono_average_fit * 4) - 3;
+        if (vu_mono_average_meter4 < 0) { vu_mono_average_meter4 = 0; }
+        if (vu_mono_average_meter4 > 1) { vu_mono_average_meter4 = 1; }
         vu_mono_average_meter1 = (vu_mono_average_meter1 * vu_out_range) + vu_out_min;
         vu_mono_average_meter2 = (vu_mono_average_meter2 * vu_out_range) + vu_out_min;
         vu_mono_average_meter3 = (vu_mono_average_meter3 * vu_out_range) + vu_out_min;
@@ -252,18 +255,18 @@ midi_for_light.vuMeter = function() { // read, calculate and send vu-meter value
         midi.sendShortMsg(0x8F + midi_channel, 0x4C, vu_mono_average_meter4); // dez.76, okt.6 note E
     }
     if (enable_vu_left_current_meter === true) {
-        var vu_left_current_meter1 = (vu_left_current * 4) - 0;
-        if (vu_left_current_meter1 < 0) vu_left_current_meter1 = 0;
-        if (vu_left_current_meter1 > 1) vu_left_current_meter1 = 1;
-        var vu_left_current_meter2 = (vu_left_current * 4) - 1;
-        if (vu_left_current_meter2 < 0) vu_left_current_meter2 = 0;
-        if (vu_left_current_meter2 > 1) vu_left_current_meter2 = 1;
-        var vu_left_current_meter3 = (vu_left_current * 4) - 2;
-        if (vu_left_current_meter3 < 0) vu_left_current_meter3 = 0;
-        if (vu_left_current_meter3 > 1) vu_left_current_meter3 = 1;
-        var vu_left_current_meter4 = (vu_left_current * 4) - 3;
-        if (vu_left_current_meter4 < 0) vu_left_current_meter4 = 0;
-        if (vu_left_current_meter4 > 1) vu_left_current_meter4 = 1;
+        let vu_left_current_meter1 = (vu_left_current * 4) - 0;
+        if (vu_left_current_meter1 < 0) { vu_left_current_meter1 = 0; }
+        if (vu_left_current_meter1 > 1) { vu_left_current_meter1 = 1; }
+        let vu_left_current_meter2 = (vu_left_current * 4) - 1;
+        if (vu_left_current_meter2 < 0) { vu_left_current_meter2 = 0; }
+        if (vu_left_current_meter2 > 1) { vu_left_current_meter2 = 1; }
+        let vu_left_current_meter3 = (vu_left_current * 4) - 2;
+        if (vu_left_current_meter3 < 0) { vu_left_current_meter3 = 0; }
+        if (vu_left_current_meter3 > 1) { vu_left_current_meter3 = 1; }
+        let vu_left_current_meter4 = (vu_left_current * 4) - 3;
+        if (vu_left_current_meter4 < 0) { vu_left_current_meter4 = 0; }
+        if (vu_left_current_meter4 > 1) { vu_left_current_meter4 = 1; }
         vu_left_current_meter1 = (vu_left_current_meter1 * vu_out_range) + vu_out_min;
         vu_left_current_meter2 = (vu_left_current_meter2 * vu_out_range) + vu_out_min;
         vu_left_current_meter3 = (vu_left_current_meter3 * vu_out_range) + vu_out_min;
@@ -274,18 +277,18 @@ midi_for_light.vuMeter = function() { // read, calculate and send vu-meter value
         midi.sendShortMsg(0x8F + midi_channel, 0x58, vu_left_current_meter4); // dez.88, okt.7 note E
     }
     if (enable_vu_left_average_meter === true) {
-        var vu_left_average_meter1 = (vu_left_average_fit * 4) - 0;
-        if (vu_left_average_meter1 < 0) vu_left_average_meter1 = 0;
-        if (vu_left_average_meter1 > 1) vu_left_average_meter1 = 1;
-        var vu_left_average_meter2 = (vu_left_average_fit * 4) - 1;
-        if (vu_left_average_meter2 < 0) vu_left_average_meter2 = 0;
-        if (vu_left_average_meter2 > 1) vu_left_average_meter2 = 1;
-        var vu_left_average_meter3 = (vu_left_average_fit * 4) - 2;
-        if (vu_left_average_meter3 < 0) vu_left_average_meter3 = 0;
-        if (vu_left_average_meter3 > 1) vu_left_average_meter3 = 1;
-        var vu_left_average_meter4 = (vu_left_average_fit * 4) - 3;
-        if (vu_left_average_meter4 < 0) vu_left_average_meter4 = 0;
-        if (vu_left_average_meter4 > 1) vu_left_average_meter4 = 1;
+        let vu_left_average_meter1 = (vu_left_average_fit * 4) - 0;
+        if (vu_left_average_meter1 < 0) { vu_left_average_meter1 = 0; }
+        if (vu_left_average_meter1 > 1) { vu_left_average_meter1 = 1; }
+        let vu_left_average_meter2 = (vu_left_average_fit * 4) - 1;
+        if (vu_left_average_meter2 < 0) { vu_left_average_meter2 = 0; }
+        if (vu_left_average_meter2 > 1) { vu_left_average_meter2 = 1; }
+        let vu_left_average_meter3 = (vu_left_average_fit * 4) - 2;
+        if (vu_left_average_meter3 < 0) { vu_left_average_meter3 = 0; }
+        if (vu_left_average_meter3 > 1) { vu_left_average_meter3 = 1; }
+        let vu_left_average_meter4 = (vu_left_average_fit * 4) - 3;
+        if (vu_left_average_meter4 < 0) { vu_left_average_meter4 = 0; }
+        if (vu_left_average_meter4 > 1) { vu_left_average_meter4 = 1; }
         vu_left_average_meter1 = (vu_left_average_meter1 * vu_out_range) + vu_out_min;
         vu_left_average_meter2 = (vu_left_average_meter2 * vu_out_range) + vu_out_min;
         vu_left_average_meter3 = (vu_left_average_meter3 * vu_out_range) + vu_out_min;
@@ -296,18 +299,18 @@ midi_for_light.vuMeter = function() { // read, calculate and send vu-meter value
         midi.sendShortMsg(0x8F + midi_channel, 0x5C, vu_left_average_meter4); // dez.92, okt.7 note G#
     }
     if (enable_vu_right_current_meter === true) {
-        var vu_right_current_meter1 = (vu_right_current * 4) - 0;
-        if (vu_right_current_meter1 < 0) vu_right_current_meter1 = 0;
-        if (vu_right_current_meter1 > 1) vu_right_current_meter1 = 1;
-        var vu_right_current_meter2 = (vu_right_current * 4) - 1;
-        if (vu_right_current_meter2 < 0) vu_right_current_meter2 = 0;
-        if (vu_right_current_meter2 > 1) vu_right_current_meter2 = 1;
-        var vu_right_current_meter3 = (vu_right_current * 4) - 2;
-        if (vu_right_current_meter3 < 0) vu_right_current_meter3 = 0;
-        if (vu_right_current_meter3 > 1) vu_right_current_meter3 = 1;
-        var vu_right_current_meter4 = (vu_right_current * 4) - 3;
-        if (vu_right_current_meter4 < 0) vu_right_current_meter4 = 0;
-        if (vu_right_current_meter4 > 1) vu_right_current_meter4 = 1;
+        let vu_right_current_meter1 = (vu_right_current * 4) - 0;
+        if (vu_right_current_meter1 < 0) { vu_right_current_meter1 = 0; }
+        if (vu_right_current_meter1 > 1) { vu_right_current_meter1 = 1; }
+        let vu_right_current_meter2 = (vu_right_current * 4) - 1;
+        if (vu_right_current_meter2 < 0) { vu_right_current_meter2 = 0; }
+        if (vu_right_current_meter2 > 1) { vu_right_current_meter2 = 1; }
+        let vu_right_current_meter3 = (vu_right_current * 4) - 2;
+        if (vu_right_current_meter3 < 0) { vu_right_current_meter3 = 0; }
+        if (vu_right_current_meter3 > 1) { vu_right_current_meter3 = 1; }
+        let vu_right_current_meter4 = (vu_right_current * 4) - 3;
+        if (vu_right_current_meter4 < 0) { vu_right_current_meter4 = 0; }
+        if (vu_right_current_meter4 > 1) { vu_right_current_meter4 = 1; }
         vu_right_current_meter1 = (vu_right_current_meter1 * vu_out_range) + vu_out_min;
         vu_right_current_meter2 = (vu_right_current_meter2 * vu_out_range) + vu_out_min;
         vu_right_current_meter3 = (vu_right_current_meter3 * vu_out_range) + vu_out_min;
@@ -318,18 +321,18 @@ midi_for_light.vuMeter = function() { // read, calculate and send vu-meter value
         midi.sendShortMsg(0x8F + midi_channel, 0x68, vu_right_current_meter4); // dez.104, okt.8 note G#
     }
     if (enable_vu_right_average_meter === true) {
-        var vu_right_average_meter1 = (vu_right_average_fit * 4) - 0;
-        if (vu_right_average_meter1 < 0) vu_right_average_meter1 = 0;
-        if (vu_right_average_meter1 > 1) vu_right_average_meter1 = 1;
-        var vu_right_average_meter2 = (vu_right_average_fit * 4) - 1;
-        if (vu_right_average_meter2 < 0) vu_right_average_meter2 = 0;
-        if (vu_right_average_meter2 > 1) vu_right_average_meter2 = 1;
-        var vu_right_average_meter3 = (vu_right_average_fit * 4) - 2;
-        if (vu_right_average_meter3 < 0) vu_right_average_meter3 = 0;
-        if (vu_right_average_meter3 > 1) vu_right_average_meter3 = 1;
-        var vu_right_average_meter4 = (vu_right_average_fit * 4) - 3;
-        if (vu_right_average_meter4 < 0) vu_right_average_meter4 = 0;
-        if (vu_right_average_meter4 > 1) vu_right_average_meter4 = 1;
+        let vu_right_average_meter1 = (vu_right_average_fit * 4) - 0;
+        if (vu_right_average_meter1 < 0) { vu_right_average_meter1 = 0; }
+        if (vu_right_average_meter1 > 1) { vu_right_average_meter1 = 1; }
+        let vu_right_average_meter2 = (vu_right_average_fit * 4) - 1;
+        if (vu_right_average_meter2 < 0) { vu_right_average_meter2 = 0; }
+        if (vu_right_average_meter2 > 1) { vu_right_average_meter2 = 1; }
+        let vu_right_average_meter3 = (vu_right_average_fit * 4) - 2;
+        if (vu_right_average_meter3 < 0) { vu_right_average_meter3 = 0; }
+        if (vu_right_average_meter3 > 1) { vu_right_average_meter3 = 1; }
+        let vu_right_average_meter4 = (vu_right_average_fit * 4) - 3;
+        if (vu_right_average_meter4 < 0) { vu_right_average_meter4 = 0; }
+        if (vu_right_average_meter4 > 1) { vu_right_average_meter4 = 1; }
         vu_right_average_meter1 = (vu_right_average_meter1 * vu_out_range) + vu_out_min;
         vu_right_average_meter2 = (vu_right_average_meter2 * vu_out_range) + vu_out_min;
         vu_right_average_meter3 = (vu_right_average_meter3 * vu_out_range) + vu_out_min;
@@ -392,15 +395,15 @@ midi_for_light.vuMeter = function() { // read, calculate and send vu-meter value
 };
 
 midi_for_light.deckVolumeChange = function(value, group, control) { // deck volume changed
-    if (midi_for_light.volumebeat === false) return; // out if volumebeat is not active
-    if (midi_for_light.volumeBeatBlockStatus === true) return; // out if volumebeat is blocked
+    if (midi_for_light.volumebeat === false) { return; } // out if volumebeat is not active
+    if (midi_for_light.volumeBeatBlockStatus === true) { return; } // out if volumebeat is blocked
 
-    var deckvolume = new Array(0, 0, 0, 0);
-    var volumemax = 0;
-    var deckneu = -1;
+    const deckvolume = new Array(0, 0, 0, 0);
+    let volumemax = 0;
+    let deckneu = -1;
 
     // get volume from the decks and check it for use
-    for (var z = 0; z <= 3; z++) {
+    for (let z = 0; z <= 3; z++) {
         deckvolume[z] = engine.getValue("[Channel" + (z + 1) + "]", "volume");
         print("beat_watchdog " + z + ": " + beat_watchdog[z]);
         if (deckvolume[z] > 0 && deckvolume[z] > volumemax && beat_watchdog[z] === false) {
@@ -409,7 +412,7 @@ midi_for_light.deckVolumeChange = function(value, group, control) { // deck volu
         }
     }
 
-    if (deckneu == -1) return; // out if no new valid deck
+    if (deckneu == -1) { return; } // out if no new valid deck
 
     // check deck change and send change message
     if (deckneu != midi_for_light.deck_current) {
@@ -434,7 +437,7 @@ midi_for_light.volumeBeatOnDelay = function() { // allow deck change with volume
 
 midi_for_light.crossfaderChange = function() { // crossfader chenge, check deck change
     // if fader prevent, go out
-    if (midi_for_light.crossfader_block === true) return;
+    if (midi_for_light.crossfader_block === true) { return; }
 
     // check changing to "deck change by volume" method
     midi_for_light.volumebeat = false;
@@ -446,16 +449,16 @@ midi_for_light.crossfaderChange = function() { // crossfader chenge, check deck 
     }
 
     // if crossfader in middle position, go out
-    if (engine.getValue("[Master]", "crossfader") === 0) return;
+    if (engine.getValue("[Master]", "crossfader") === 0) { return; }
 
     // check what deck is current, crossfader exact 0 is defined as left
-    var deck = 0;
+    let deck = 0;
     if (engine.getValue("[Master]", "crossfader") > 0) { // crossfader is right, not middle
         deck = 1;
-        if (beat_watchdog[1] === true) deck = 3;
+        if (beat_watchdog[1] === true) { deck = 3; }
     } else {
         deck = 0;
-        if (beat_watchdog[0] === true) deck = 2;
+        if (beat_watchdog[0] === true) { deck = 2; }
     }
 
     // check if deck has been changed
@@ -476,34 +479,34 @@ midi_for_light.crossfaderChangeBlock = function() { // prevent deck change for o
 };
 
 midi_for_light.sendMidiMtcFullFrame = function(value, group, control) { // sends an MTC full frame
-    var deck = parseInt(group.substring(8, 9)) - 1;
-    if (deck != midi_for_light.deck_current) return;
+    const deck = parseInt(group.substring(8, 9)) - 1;
+    if (deck != midi_for_light.deck_current) { return; }
 
-    var fps = 2; // 2 = 25 FPS
-    var duration = engine.getValue(group, "track_samples") / engine.getValue(group, "track_samplerate") / 2;
-    var PlayPositionRest = duration * engine.getValue(group, "playposition");
+    const fps = 2; // 2 = 25 FPS
+    const duration = engine.getValue(group, "track_samples") / engine.getValue(group, "track_samplerate") / 2;
+    let PlayPositionRest = duration * engine.getValue(group, "playposition");
 
-    if (PlayPositionRest < 0) PlayPositionRest = 0;
+    if (PlayPositionRest < 0) { PlayPositionRest = 0; }
 
     // calculate position hour and stripping from PlayPositionRest
-    var hr = Math.floor(PlayPositionRest / 3600);
+    const hr = Math.floor(PlayPositionRest / 3600);
     PlayPositionRest = PlayPositionRest - (hr * 3600);
     // calculate position minute and stripping from PlayPositionRest
-    var mn = Math.floor(PlayPositionRest / 60);
+    const mn = Math.floor(PlayPositionRest / 60);
     PlayPositionRest = PlayPositionRest - (mn * 60);
     // calculate position second and stripping from PlayPositionRest
-    var ss = Math.floor(PlayPositionRest);
+    const ss = Math.floor(PlayPositionRest);
     PlayPositionRest = PlayPositionRest - ss;
     // calculate position frame and stripping from PlayPositionRest
-    var fr = Math.floor(PlayPositionRest * 25);
+    const fr = Math.floor(PlayPositionRest * 25);
     // construct Sysex-Fram and send it
-    var fullframe = [0xf0, 0x7f, 0x7f, 0x01, 0x01, (16 * fps) + hr, mn, ss, fr, 0xf7];
+    const fullframe = [0xf0, 0x7f, 0x7f, 0x01, 0x01, (16 * fps) + hr, mn, ss, fr, 0xf7];
     midi.sendSysexMsg(fullframe, 10);
 };
 
 midi_for_light.deckBeatOutputToMidi = function(value, group, control) { // send midi note for beat and the BPM value
-    var deck = parseInt(group.substring(8, 9)) - 1;
-    var deck_bpm = parseInt(engine.getValue(group, "bpm")) - 50;
+    const deck = parseInt(group.substring(8, 9)) - 1;
+    let deck_bpm = parseInt(engine.getValue(group, "bpm")) - 50;
 
     // reset deck beat watchdog
     engine.stopTimer(deck_beat_watchdog_timer[deck]);
@@ -511,13 +514,13 @@ midi_for_light.deckBeatOutputToMidi = function(value, group, control) { // send 
     deck_beat_watchdog_timer[deck] = engine.beginTimer(beat_watchdog_time, "midi_for_light.deckBeatWatchdog(" + deck + ")");
 
     // fit deck bpm to midi range 0-127
-    if (deck_bpm <= 0) deck_bpm = 0;
-    if (deck_bpm >= 127) deck_bpm = 127;
+    if (deck_bpm <= 0) { deck_bpm = 0; }
+    if (deck_bpm >= 127) { deck_bpm = 127; }
 
     if (midi_for_light.deck_current == deck) { // only when its the correct deck
         if (value) { // beat is on, sending note on
-            if (enable_beat === true) midi.sendShortMsg(0x8F + midi_channel, 0x32, 0x64); // note D (50) on with value 64
-            if (enable_bpm === true) midi.sendShortMsg(0x8f + midi_channel, 0x34, deck_bpm); // note E (52) on with value BPM
+            if (enable_beat === true) { midi.sendShortMsg(0x8F + midi_channel, 0x32, 0x64); } // note D (50) on with value 64
+            if (enable_bpm === true) { midi.sendShortMsg(0x8f + midi_channel, 0x34, deck_bpm); } // note E (52) on with value BPM
         } else { // beat is of, send note off
             if (enable_beat === true) {
                 midi.sendShortMsg(0x8F + midi_channel, 0x32, 0x0); // note D (50) on with value 0

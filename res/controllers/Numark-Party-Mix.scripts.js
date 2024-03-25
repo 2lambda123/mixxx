@@ -48,7 +48,7 @@ NumarkPartyMix.init = function(_id, _debugging) {
 
     // initialize component containers
     NumarkPartyMix.deck = new components.ComponentContainer();
-    for (var i = 0; i < 2; i++) {
+    for (let i = 0; i < 2; i++) {
         NumarkPartyMix.deck[i] = new NumarkPartyMix.Deck(i + 1);
     }
 
@@ -66,8 +66,8 @@ NumarkPartyMix.shutdown = function() {
 NumarkPartyMix.Deck = function(deckNumber) {
     components.Deck.call(this, deckNumber);
 
-    var channel = deckNumber - 1;
-    var deck = this;
+    const channel = deckNumber - 1;
+    const deck = this;
     this.scratchModeEnabled = false;
 
     this.playButton = new components.PlayButton({
@@ -86,7 +86,7 @@ NumarkPartyMix.Deck = function(deckNumber) {
         midi: [0x90 + channel, 0x1B],
         key: "pfl",
         output: function(value) {
-            var note = (value === 0x00 ? 0x80 : 0x90) + channel;
+            const note = (value === 0x00 ? 0x80 : 0x90) + channel;
             midi.sendShortMsg(note, 0x1B, this.outValueScale(value));
         }
     });
@@ -144,7 +144,7 @@ NumarkPartyMix.Deck = function(deckNumber) {
             //clockwise (slow-fast) 0x01 - 0x06
             //counter-clockwise (slow-fast) 0x7F - 0x7A
             //transform counter-clockwise messages to negative values
-            var newValue = (value < 0x40) ? value : (value - 0x80);
+            const newValue = (value < 0x40) ? value : (value - 0x80);
 
             if (this.touchTimer !== 0) {
                 engine.stopTimer(this.touchTimer);
@@ -197,12 +197,12 @@ NumarkPartyMix.PadSection = function(deckNumber) {
     };
 
     this.padPress = function(channel, control, value, status, group) {
-        var i = (control - 0x14) % 8;
+        const i = (control - 0x14) % 8;
         this.currentMode.connections[i].input(channel, control, value, status, group);
     };
 
     this.setMode = function(control) {
-        var newMode = this.modes[control];
+        const newMode = this.modes[control];
         this.currentMode.forEachComponent(function(component) {
             component.disconnect();
         });
@@ -226,7 +226,7 @@ NumarkPartyMix.ModeHotcue = function(deckNumber) {
     this.control = NumarkPartyMix.PadModeControls.HOTCUE;
 
     this.connections = new components.ComponentContainer();
-    for (var i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i++) {
         this.connections[i] = new components.HotcueButton({
             group: "[Channel" + deckNumber + "]",
             midi: [0x93 + deckNumber, 0x14 + i],
@@ -243,7 +243,7 @@ NumarkPartyMix.ModeLoop = function(deckNumber) {
     this.control = NumarkPartyMix.PadModeControls.AUTOLOOP;
 
     this.connections = new components.ComponentContainer();
-    for (var i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i++) {
         this.connections[i] = new components.Button({
             group: "[Channel" + deckNumber + "]",
             midi: [0x93 + deckNumber, 0x14 + i],
@@ -262,9 +262,9 @@ NumarkPartyMix.ModeLoop.prototype = Object.create(components.ComponentContainer.
 NumarkPartyMix.ModeSampler = function(deckNumber) {
     components.ComponentContainer.call(this);
     this.control = NumarkPartyMix.PadModeControls.SAMPLER;
-    var sampleoffset = (deckNumber - 1) * 4;
+    const sampleoffset = (deckNumber - 1) * 4;
     this.connections = new components.ComponentContainer();
-    for (var i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i++) {
         this.connections[i] = new components.SamplerButton({
             midi: [0x93 + deckNumber, 0x14 + i],
             number: 1 + i + sampleoffset,
@@ -294,14 +294,14 @@ NumarkPartyMix.ModeEFX = function(deckNumber) {
 
     this.control = NumarkPartyMix.PadModeControls.EFX;
 
-    var fx = [
+    const fx = [
         "[EffectRack1_EffectUnit" + deckNumber + "_Effect1]",
         "[EffectRack1_EffectUnit" + deckNumber + "_Effect2]",
         "[EffectRack1_EffectUnit" + deckNumber + "_Effect3]"
     ];
 
     this.connections = new components.ComponentContainer();
-    var p = this.connections;
+    const p = this.connections;
 
     fx.forEach(function(fx, i) {
         p[i] = new components.Button({
@@ -327,12 +327,12 @@ NumarkPartyMix.ModeEFX.prototype = Object.create(components.ComponentContainer.p
 NumarkPartyMix.Browse = function() {
     components.ComponentContainer.call(this);
 
-    var browse = this;
+    const browse = this;
     this.knobpressed = false;
 
     this.knob = new components.Encoder({
         input: function(channel, control, value) {
-            var direction;
+            let direction;
             if (browse.knobpressed) {
                 if (value > 0x40) {
                     engine.setParameter("[Library]", "MoveFocusForward", 1);

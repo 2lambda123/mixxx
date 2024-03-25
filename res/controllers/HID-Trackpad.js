@@ -15,17 +15,17 @@ HIDTrackpad.init = function(id) {
     HIDTrackpad.registerScalers();
     HIDTrackpad.registerCallbacks();
     HIDDebug("HID Trackpad Initialized: " + HIDTrackpad.id);
-}
+};
 
 HIDTrackpad.shutdown = function() {
     HIDDebug("HID Trackpad Shutdown: " + HIDTrackpad.id);
-}
+};
 
-HIDTrackpad.incomingData = function(data,length) {
-    var controller = HIDTrackpad.controller;
+HIDTrackpad.incomingData = function(data, length) {
+    const controller = HIDTrackpad.controller;
     if (controller==undefined) {
         HIDDebug("Error in script initialization: controller not found");
         return;
     }
-    controller.parsePacket(data,length);
-}
+    controller.parsePacket(data, length);
+};

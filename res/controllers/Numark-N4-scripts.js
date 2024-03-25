@@ -89,13 +89,13 @@ NumarkN4.CrossfaderChangeCallback = function(value, group, control) {
 NumarkN4.init = function() {
     NumarkN4.rateRanges[0]=engine.getValue("[Channel1]", "rateRange");
     NumarkN4.Decks=[];
-    for (var i=1; i<=4; i++) {
+    for (let i=1; i<=4; i++) {
     // Array is based on 1 because it makes more sense in the XML
         NumarkN4.Decks[i] = new NumarkN4.Deck(i);
     }
     // create xFader callbacks and trigger them to fill NumarkN4.storedCrossfaderParams
     _.forEach(NumarkN4.scratchXFader, function(value, control) {
-        var connectionObject = engine.makeConnection("[Mixer Profile]", control, NumarkN4.CrossfaderChangeCallback.bind(this));
+        const connectionObject = engine.makeConnection("[Mixer Profile]", control, NumarkN4.CrossfaderChangeCallback.bind(this));
         connectionObject.trigger();
         NumarkN4.crossfaderCallbackConnections.push(connectionObject);
     });
@@ -109,7 +109,7 @@ NumarkN4.init = function() {
 
 NumarkN4.topContainer = function(channel) {
     this.group = "[Channel"+channel+"]";
-    var theContainer = this;
+    const theContainer = this;
 
     this.btnEffect1 = new components.Button({
         midi: [0x90+channel, 0x13, 0xB0+channel, 0x0B],
@@ -169,7 +169,7 @@ NumarkN4.topContainer = function(channel) {
     // custom Hotcue Buttons
     this.hotcueButtons=[];
 
-    for (var counter=0; counter<=3; counter++) {
+    for (let counter=0; counter<=3; counter++) {
         this.hotcueButtons[counter] = new components.HotcueButton({
             midi: [0x90+channel, 0x27+counter, 0xB0+channel, 0x18+counter],
             number: counter+1,
@@ -212,7 +212,7 @@ NumarkN4.topContainer = function(channel) {
                 engine.stopTimer(this.timer);
                 this.timer = 0;
             }
-            var number = 0;
+            let number = 0;
             for (var i=0; i<theContainer.hotcueButtons.length; ++i) {
                 number = (i+1)+theContainer.hotcueButtons.length*this.hotCuePage;
                 theContainer.hotcueButtons[i].disconnect();
@@ -265,7 +265,7 @@ NumarkN4.topContainer = function(channel) {
     });
     this.shutdown = function() {
     // turn off hotcueButtons
-        for (var i=0; i<theContainer.hotcueButtons.length; i++) {
+        for (let i=0; i<theContainer.hotcueButtons.length; i++) {
             theContainer.hotcueButtons[i].send(0);
         }
         // turn all remaining LEDS of the topContainer
@@ -374,7 +374,7 @@ NumarkN4.Deck = function(channel) {
     this.rateRangeEntry=1;
     this.lastOrientation = (channel % 2) ? 0 : 2;
     this.isSearching=false;
-    var theDeck = this;
+    const theDeck = this;
     this.topContainer = new NumarkN4.topContainer(channel);
     this.topContainer.reconnectComponents(function(component) {
         if (component.group === undefined) {
@@ -382,7 +382,7 @@ NumarkN4.Deck = function(channel) {
         }
     });
     this.eqKnobs = [];
-    for (var i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 3; i++) {
         this.eqKnobs[i] = new components.Pot({
             midi: [0xB0, 0x29 + i + 5*(channel-1)],
             group: "[EqualizerRack1_"+theDeck.group+"_Effect1]",
@@ -646,7 +646,7 @@ NumarkN4.Deck = function(channel) {
     this.pitchLedHandler = engine.makeConnection(this.group, "rate", function(value) {
     // Turns on when rate slider is centered
         midi.sendShortMsg(0xB0+channel, 0x37, value===0 ? 0x7F : 0x00);
-    }.bind(this));
+    });
     this.pitchLedHandler.trigger();
 
 
@@ -698,7 +698,7 @@ NumarkN4.Deck = function(channel) {
 NumarkN4.Deck.prototype = new components.Deck();
 
 NumarkN4.shutdown = function() {
-    for (var i=1; i<=4; i++) {
+    for (let i=1; i<=4; i++) {
     // View Definition of Array for explanation.
         NumarkN4.Decks[i].shutdown();
     }

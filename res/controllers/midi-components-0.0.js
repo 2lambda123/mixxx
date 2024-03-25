@@ -527,7 +527,7 @@
             if (recursive === undefined) { recursive = true; }
 
             const that = this;
-            var applyOperationTo = function(obj) {
+            const applyOperationTo = function(obj) {
                 if (obj instanceof Component) {
                     operation.call(that, obj);
                 } else if (recursive && obj instanceof ComponentContainer) {
@@ -553,7 +553,7 @@
             if (recursive === undefined) { recursive = true; }
 
             const that = this;
-            var applyOperationTo = function(obj) {
+            const applyOperationTo = function(obj) {
                 if (obj instanceof ComponentContainer) {
                     operation.call(that, obj);
 

@@ -58,9 +58,9 @@ DJCStarlight.kScratchActionBend = 3;
 
 
 // The base LED are mapped to the VU Meter for light show.
-DJCStarlight.baseLEDUpdate = function(value, group, control){
+DJCStarlight.baseLEDUpdate = function(value, group, control) {
     value = (value*127);
-    switch(control) {
+    switch (control) {
     case "VuMeterL":
         midi.sendShortMsg(0x91, 0x23, value);
         break;
@@ -76,17 +76,18 @@ DJCStarlight.init = function() {
     DJCStarlight.scratchButtonState = true;
     DJCStarlight.scratchAction = {
         1: DJCStarlight.kScratchActionNone,
-        2: DJCStarlight.kScratchActionNone};
+        2: DJCStarlight.kScratchActionNone
+    };
 
     // Turn off base LED default behavior
-    midi.sendShortMsg(0x90,0x24,0x00);
+    midi.sendShortMsg(0x90, 0x24, 0x00);
 
     // Vinyl button LED On.
     midi.sendShortMsg(0x91, 0x03, 0x7F);
 
     // Connect the base LEDs
-    engine.connectControl("[Channel1]","VuMeterL","DJCStarlight.baseLEDUpdate");
-    engine.connectControl("[Channel2]","VuMeterR","DJCStarlight.baseLEDUpdate");
+    engine.connectControl("[Channel1]", "VuMeterL", "DJCStarlight.baseLEDUpdate");
+    engine.connectControl("[Channel2]", "VuMeterR", "DJCStarlight.baseLEDUpdate");
 
     // Set effects Levels - Dry/Wet
     engine.setParameter("[EffectRack1_EffectUnit1_Effect1]", "meta", 0.6);
@@ -109,19 +110,19 @@ DJCStarlight.vinylButton = function(channel, control, value, status, group) {
     if (value) {
         if (DJCStarlight.scratchButtonState) {
             DJCStarlight.scratchButtonState = false;
-            midi.sendShortMsg(0x91,0x03,0x00);
+            midi.sendShortMsg(0x91, 0x03, 0x00);
 
         } else {
             DJCStarlight.scratchButtonState = true;
-            midi.sendShortMsg(0x91,0x03,0x7F);
+            midi.sendShortMsg(0x91, 0x03, 0x7F);
         }
     }
 };
 
 
 DJCStarlight._scratchEnable = function(deck) {
-    var alpha = 1.0/8;
-    var beta = alpha/32;
+    const alpha = 1.0/8;
+    const beta = alpha/32;
     engine.scratchEnable(deck, 248, 33 + 1/3, alpha, beta);
 };
 
@@ -131,12 +132,12 @@ DJCStarlight._convertWheelRotation = function(value) {
     // (clockwise) or 0x7F (counter clockwise). 0x1 should map to 1, 0x7F
     // should map to -1 (IOW it's 7-bit signed).
     return value < 0x40 ? 1 : -1;
-}
+};
 
 
 // The touch action on the jog wheel's top surface
 DJCStarlight.wheelTouch = function(channel, control, value, status, group) {
-    var deck = channel;
+    const deck = channel;
     if (value > 0) {
         //  Touching the wheel.
         if (engine.getValue("[Channel" + deck + "]", "play") !== 1 || DJCStarlight.scratchButtonState) {
@@ -155,7 +156,7 @@ DJCStarlight.wheelTouch = function(channel, control, value, status, group) {
 
 // The touch action on the jog wheel's top surface while holding shift
 DJCStarlight.wheelTouchShift = function(channel, control, value, status, group) {
-    var deck = channel - 3;
+    const deck = channel - 3;
     // We always enable scratching regardless of button state.
     if (value > 0) {
         DJCStarlight._scratchEnable(deck);
@@ -170,14 +171,14 @@ DJCStarlight.wheelTouchShift = function(channel, control, value, status, group) 
 
 // Scratching on the jog wheel (rotating it while pressing the top surface)
 DJCStarlight._scratchWheelImpl = function(deck, value) {
-    var interval = DJCStarlight._convertWheelRotation(value);
-    var scratchAction = DJCStarlight.scratchAction[deck];
+    const interval = DJCStarlight._convertWheelRotation(value);
+    const scratchAction = DJCStarlight.scratchAction[deck];
 
     if (scratchAction == DJCStarlight.kScratchActionScratch) {
         engine.scratchTick(deck, interval * DJCStarlight.scratchScale);
     } else if (scratchAction == DJCStarlight.kScratchActionSeek) {
         engine.scratchTick(deck,
-                           interval
+            interval
                            * DJCStarlight.scratchScale
                            * DJCStarlight.scratchShiftMultiplier);
     } else {
@@ -188,28 +189,28 @@ DJCStarlight._scratchWheelImpl = function(deck, value) {
 
 // Scratching on the jog wheel (rotating it while pressing the top surface)
 DJCStarlight.scratchWheel = function(channel, control, value, status, group) {
-    var deck = channel;
+    const deck = channel;
     DJCStarlight._scratchWheelImpl(deck, value);
 };
 
 
 // Seeking on the jog wheel (rotating it while pressing the top surface and holding Shift)
 DJCStarlight.scratchWheelShift = function(channel, control, value, status, group) {
-    var deck = channel - 3;
+    const deck = channel - 3;
     DJCStarlight._scratchWheelImpl(deck, value);
 };
 
 
 DJCStarlight._bendWheelImpl = function(deck, value) {
-    var interval = DJCStarlight._convertWheelRotation(value);
-    engine.setValue('[Channel' + deck + ']', 'jog',
-                    interval * DJCStarlight.bendScale);
+    const interval = DJCStarlight._convertWheelRotation(value);
+    engine.setValue("[Channel" + deck + "]", "jog",
+        interval * DJCStarlight.bendScale);
 };
 
 
 // Bending on the jog wheel (rotating using the edge)
 DJCStarlight.bendWheel = function(channel, control, value, status, group) {
-    var deck = channel;
+    const deck = channel;
     DJCStarlight._bendWheelImpl(deck, value);
 };
 
@@ -221,15 +222,15 @@ DJCStarlight.cueMaster = function(channel, control, value, status, group) {
         return;
     }
 
-    var masterIsCued = engine.getValue('[Master]', 'headMix') > 0;
+    let masterIsCued = engine.getValue("[Master]", "headMix") > 0;
     // Toggle state.
     masterIsCued = !masterIsCued;
 
-    var headMixValue = masterIsCued ? 1 : -1;
-    engine.setValue('[Master]', 'headMix', headMixValue);
+    const headMixValue = masterIsCued ? 1 : -1;
+    engine.setValue("[Master]", "headMix", headMixValue);
 
     // Set LED (will be overwritten when [Shift] is released)
-    var cueMasterLedValue = masterIsCued ? 0x7F : 0x00;
+    const cueMasterLedValue = masterIsCued ? 0x7F : 0x00;
     midi.sendShortMsg(0x91, 0x0C, cueMasterLedValue);
 };
 
@@ -245,11 +246,11 @@ DJCStarlight.cueMix = function(channel, control, value, status, group) {
     }
 
     // Toggle state.
-    script.toggleControl('[Master]', 'headSplit');
+    script.toggleControl("[Master]", "headSplit");
 
     // Set LED (will be overwritten when [Shift] is released)
-    var cueMixLedValue =
-        engine.getValue('[Master]', 'headSplit') ? 0x7F : 0x00;
+    const cueMixLedValue =
+        engine.getValue("[Master]", "headSplit") ? 0x7F : 0x00;
     midi.sendShortMsg(0x92, 0x0C, cueMixLedValue);
 };
 
@@ -258,19 +259,19 @@ DJCStarlight.shiftButton = function(channel, control, value, status, group) {
     if (value >= 0x40) {
         // When Shift is held, light the LEDS to show the status of the alt
         // functions of the cue buttons.
-        var cueMasterLedValue =
-            engine.getValue('[Master]', 'headMix') > 0 ? 0x7F : 0x00;
+        const cueMasterLedValue =
+            engine.getValue("[Master]", "headMix") > 0 ? 0x7F : 0x00;
         midi.sendShortMsg(0x91, 0x0C, cueMasterLedValue);
-        var cueMixLedValue =
-            engine.getValue('[Master]', 'headSplit') ? 0x7F : 0x00;
+        const cueMixLedValue =
+            engine.getValue("[Master]", "headSplit") ? 0x7F : 0x00;
         midi.sendShortMsg(0x92, 0x0C, cueMixLedValue);
     } else {
         // When Shift is released, go back to the normal LED values.
-        var cueChan1LedValue =
-            engine.getValue('[Channel1]', 'pfl') ? 0x7F : 0x00;
+        const cueChan1LedValue =
+            engine.getValue("[Channel1]", "pfl") ? 0x7F : 0x00;
         midi.sendShortMsg(0x91, 0x0C, cueChan1LedValue);
-        var cueChan2LedValue =
-            engine.getValue('[Channel2]', 'pfl') ? 0x7F : 0x00;
+        const cueChan2LedValue =
+            engine.getValue("[Channel2]", "pfl") ? 0x7F : 0x00;
         midi.sendShortMsg(0x92, 0x0C, cueChan2LedValue);
     }
 };
@@ -278,5 +279,5 @@ DJCStarlight.shiftButton = function(channel, control, value, status, group) {
 
 DJCStarlight.shutdown = function() {
     // Reset base LED
-    midi.sendShortMsg(0x90,0x24,0x7F);
+    midi.sendShortMsg(0x90, 0x24, 0x7F);
 };

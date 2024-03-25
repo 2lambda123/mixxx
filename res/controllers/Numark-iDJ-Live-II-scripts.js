@@ -73,12 +73,12 @@ Numark.toggleScratchMode = function() {
 };
 
 Numark.jogTouch = function(_channel, _control, value, _status, group) {
-    var deckN = script.deckFromGroup(group);
+    const deckN = script.deckFromGroup(group);
     if (value >= 64) {
         this.touching[group] = true;
         if (this.scratchMode) {
-            var alpha = 1.0/8;
-            var beta = alpha/32;
+            const alpha = 1.0/8;
+            const beta = alpha/32;
             engine.scratchEnable(deckN, this.jogResolution, 33+(1.0/3), alpha, beta);
         }
     } else {
@@ -95,7 +95,7 @@ Numark.jog = function(_channel, _control, value, _status, group) {
     if (value >= 64) {
         value -= 128;
     }
-    var deckN = script.deckFromGroup(group);
+    const deckN = script.deckFromGroup(group);
     if (this.scratchMode) {
         if (engine.isScratching(deckN)) {
             engine.scratchTick(deckN, value);
@@ -106,7 +106,7 @@ Numark.jog = function(_channel, _control, value, _status, group) {
             engine.setValue(group, "jog", value);
         } else {
             // search while paused
-            var position = engine.getValue(group, "playposition");
+            let position = engine.getValue(group, "playposition");
             position += value * 0.0002;
             if (position < 0) {
                 position = 0;

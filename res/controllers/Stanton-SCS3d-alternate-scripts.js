@@ -40,38 +40,51 @@ SCS3D.receive = function(channel, control, value, status) {
  * Thanks to Sean M. Pappalardo for the original SCS3 mappings.
  */
 SCS3D.Device = function() {
-    var NoteOn = 0x90;
-    var NoteOff = 0x80;
-    var CC = 0xB0;
+    const NoteOn = 0x90;
+    const NoteOff = 0x80;
+    const CC = 0xB0;
 
-    var black = 0x00;
-    var blue = 0x02;
-    var red = 0x01;
-    var purple = blue | red;
+    const black = 0x00;
+    const blue = 0x02;
+    const red = 0x01;
+    const purple = blue | red;
 
+    /**
+     *
+     */
     function Logo() {
-        var id = 0x7A;
+        const id = 0x7A;
         return {
             on: [NoteOn, id, 0x01],
             off: [NoteOn, id, 0x00]
         };
     }
 
+    /**
+     * @param id
+     */
     function Decklight(id) {
         return function(value) {
             return [NoteOn, id, +value]; // value might be boolean, coerce to int
         };
     }
 
+    /**
+     * @param id
+     * @param lights
+     */
     function Meter(id, lights) {
-        var ctrl = [];
-        var i = 0;
+        const ctrl = [];
+        let i = 0;
         for (; i < lights; i++) {
             ctrl[i] = [NoteOn, id + lights - i - 1];
         }
         return ctrl;
     }
 
+    /**
+     * @param id
+     */
     function Light(id) {
         return {
             bits: function(bits) {
@@ -84,6 +97,11 @@ SCS3D.Device = function() {
         };
     }
 
+    /**
+     * @param id
+     * @param meterid
+     * @param lights
+     */
     function Slider(id, meterid, lights) {
         return {
             meter: Meter(meterid, lights),
@@ -97,10 +115,15 @@ SCS3D.Device = function() {
         };
     }
 
+    /**
+     * @param id
+     * @param meterid
+     * @param lights
+     */
     function LightSlider(id, meterid, lights) {
-        var slider = Slider(id, meterid, lights);
-        var redled = meterid - 2;
-        var blueled = meterid - 1;
+        const slider = Slider(id, meterid, lights);
+        const redled = meterid - 2;
+        const blueled = meterid - 1;
 
         // Contrary to the other lights, the pitch light as separate addresses for red and blue
         slider.light = {
@@ -116,8 +139,12 @@ SCS3D.Device = function() {
         return slider;
     }
 
+    /**
+     * @param id
+     * @param lightid
+     */
     function Touch(id, lightid) {
-        if (!lightid) lightid = id;
+        if (!lightid) { lightid = id; }
         return {
             light: Light(lightid),
             touch: [NoteOn, id],
@@ -137,6 +164,10 @@ SCS3D.Device = function() {
     // control multiple lights for this control as well. This is why we're using
     // the plural here. The respective functions expect() and tell() know about
     // this, see demux().
+    /**
+     * @param ids
+     * @param lightids
+     */
     function Field(ids, lightids) {
         return {
             touch: [NoteOn, ids],
@@ -203,19 +234,22 @@ SCS3D.Device = function() {
 
 // debugging helper
 var printmess = function(message, text) {
-    var i;
-    var s = '';
+    let i;
+    let s = "";
 
     for (i in message) {
-        s = s + ('0' + message[i].toString(16)).slice(-2);
+        s = s + ("0" + message[i].toString(16)).slice(-2);
     }
-    print("Midi " + s + (text ? ' ' + text : ''));
+    print("Midi " + s + (text ? " " + text : ""));
 };
 
 
 
 SCS3D.Comm = function() {
     // Build a control identifier (CID) from the first two message bytes.
+    /**
+     * @param message
+     */
     function CID(message) {
         return (message[0] << 8) + message[1];
     }
@@ -223,45 +257,48 @@ SCS3D.Comm = function() {
     // Static state of the LED, indexed by CID
     // This keeps the desired state before modifiers, so that adding
     // or removing modifiers is possible without knowing the base state.
-    var base = {};
+    const base = {};
 
     // Modifier functions over base, indexed by CID
     // The functions receive the last byte of the message and return the
     // modified value.
-    var mask = {};
+    let mask = {};
 
     // List of masks that depend on time
-    var ticking = {};
+    let ticking = {};
 
     // CID that may need updating
-    var dirty = {};
+    let dirty = {};
 
     // Last sent messages, indexed by CID
-    var actual = {};
+    const actual = {};
 
     // Tick counter
-    var ticks = 0;
+    let ticks = 0;
 
     // Handler functions indexed by CID
-    var receivers = {};
+    let receivers = {};
 
     // List of handlers for control changes from the engine
-    var watched = {};
+    const watched = {};
 
     // Last sent SYSEX message
-    var actual_sysex = [];
+    let actual_sysex = [];
 
     // List of functions to call on each tick
-    var repeats = [];
+    let repeats = [];
 
+    /**
+     *
+     */
     function send() {
-        for (var cid in dirty) {
-            var message = base[cid];
-            if (!message) continue; // As long as no base is set, don't send anything
+        for (const cid in dirty) {
+            const message = base[cid];
+            if (!message) { continue; } // As long as no base is set, don't send anything
 
-            var last = actual[cid];
+            const last = actual[cid];
 
-            var value = +message[2];
+            let value = +message[2];
             if (mask[cid]) {
                 value = mask[cid](value, ticks);
             }
@@ -275,7 +312,7 @@ SCS3D.Comm = function() {
 
     return {
         base: function(message, force) {
-            var cid = CID(message);
+            const cid = CID(message);
 
             base[cid] = message;
             dirty[cid] = true;
@@ -286,15 +323,15 @@ SCS3D.Comm = function() {
         },
 
         mask: function(message, mod, changes) {
-            var cid = CID(message);
+            const cid = CID(message);
             mask[cid] = mod;
             dirty[cid] = true;
 
-            if (changes) ticking[cid] = true;
+            if (changes) { ticking[cid] = true; }
         },
 
         unmask: function(message) {
-            var cid = CID(message);
+            const cid = CID(message);
             if (mask[cid]) {
                 delete mask[cid];
                 dirty[cid] = true;
@@ -306,10 +343,10 @@ SCS3D.Comm = function() {
         },
 
         tick: function() {
-            for (var i in repeats) {
+            for (const i in repeats) {
                 repeats[i](ticks);
             }
-            for (var cid in ticking) {
+            for (const cid in ticking) {
                 dirty[cid] = true;
             }
             send();
@@ -320,7 +357,7 @@ SCS3D.Comm = function() {
             receivers = {};
             ticking = {};
             repeats = [];
-            for (var cid in mask) {
+            for (const cid in mask) {
                 dirty[cid] = true;
             }
             mask = {};
@@ -329,7 +366,7 @@ SCS3D.Comm = function() {
             // I'd like to disconnect all controls on clear, but that doesn't
             // work when using closure callbacks. So we just don't listen to
             // those
-            for (var ctrl in watched) {
+            for (const ctrl in watched) {
                 if (watched.hasOwnProperty(ctrl)) {
                     watched[ctrl] = [];
                 }
@@ -337,15 +374,15 @@ SCS3D.Comm = function() {
         },
 
         expect: function(message, handler) {
-            if (!message || message.length < 2) print("ERROR: invalid message to expect: " + message);
-            var cid = CID(message);
-            if (receivers[cid]) return; // Don't steal
+            if (!message || message.length < 2) { print("ERROR: invalid message to expect: " + message); }
+            const cid = CID(message);
+            if (receivers[cid]) { return; } // Don't steal
             receivers[cid] = handler;
         },
 
         receive: function(type, control, value) {
-            var cid = CID([type, control]);
-            var handler = receivers[cid];
+            const cid = CID([type, control]);
+            const handler = receivers[cid];
             if (handler) {
                 handler(value);
                 send();
@@ -353,17 +390,17 @@ SCS3D.Comm = function() {
         },
 
         watch: function(channel, control, handler) {
-            var ctrl = channel + control;
+            const ctrl = channel + control;
 
             if (!watched[ctrl]) {
                 watched[ctrl] = [];
                 engine.connectControl(channel, control, function(value, group, control) {
-                    var handlers = watched[ctrl];
+                    const handlers = watched[ctrl];
                     if (handlers.length) {
                         // Fetching parameter value is easier than mapping to [0..1] range ourselves
                         value = engine.getParameter(group, control);
 
-                        var i = 0;
+                        let i = 0;
                         for (; i < handlers.length; i++) {
                             handlers[i](value);
                         }
@@ -379,11 +416,11 @@ SCS3D.Comm = function() {
 
         sysex: function(message) {
             if (message.length === actual_sysex.length) {
-                var same = true;
-                for (var i in message) {
+                let same = true;
+                for (const i in message) {
                     same = same && message[i] === actual_sysex[i];
                 }
-                if (same) return;
+                if (same) { return; }
             }
 
             midi.sendSysexMsg(message, message.length);
@@ -397,14 +434,14 @@ SCS3D.Comm = function() {
 // calls
 SCS3D.Syncopath = function() {
     // Lists of last ten taps, per deck, in epoch milliseconds
-    var deckTaps = {};
+    const deckTaps = {};
 
     return function(channel) {
-        var now = new Date().getTime();
-        var taps = deckTaps[channel] || [];
+        const now = new Date().getTime();
+        let taps = deckTaps[channel] || [];
 
-        var last = taps[0] || 0;
-        var delta = now - last;
+        const last = taps[0] || 0;
+        const delta = now - last;
 
         // Reset when taps are stale
         if (delta > 2000) {
@@ -417,22 +454,22 @@ SCS3D.Syncopath = function() {
         deckTaps[channel] = taps;
 
         //  Don't set rate until we have enough taps
-        if (taps.length < 3) return;
+        if (taps.length < 3) { return; }
 
         // Calculate average bpm
-        var intervals = taps.length - 1;
-        var beatLength = (taps[0] - taps[intervals]) / intervals;
-        var bpm = 60000 / beatLength; // millis to 1/minutes
+        const intervals = taps.length - 1;
+        const beatLength = (taps[0] - taps[intervals]) / intervals;
+        const bpm = 60000 / beatLength; // millis to 1/minutes
 
         // The desired pitch rate depends on the BPM of the track
-        var rate = bpm / engine.getValue(channel, "file_bpm");
+        const rate = bpm / engine.getValue(channel, "file_bpm");
 
         // Balk on outlandish rates
-        if (isNaN(rate) || rate < 0.05 || rate > 50) return;
+        if (isNaN(rate) || rate < 0.05 || rate > 50) { return; }
 
         // Translate rate into pitch slider position
         // This depends on the configured range of the slider
-        var pitchPos = (rate - 1) / engine.getValue(channel, "rateRange");
+        const pitchPos = (rate - 1) / engine.getValue(channel, "rateRange");
 
         engine.setValue(channel, "rate", pitchPos);
     };
@@ -448,17 +485,20 @@ SCS3D.Agent = function(device) {
     // demux(function(message) { print message; })(['hello', ['me', 'you']])
     // -> hello,me
     // -> hello,you
+    /**
+     * @param action
+     */
     function demux(action) {
         return function(message, arg) {
             if (!message || message.length < 2) {
                 print("ERROR: demux over invalid message: " + message);
                 return false;
             }
-            var changed = false;
+            let changed = false;
             if (message[1].length) {
-                var i;
+                let i;
                 for (i in message[1]) {
-                    var demuxd = [message[0], message[1][i], message[2]];
+                    const demuxd = [message[0], message[1][i], message[2]];
                     changed = action(demuxd, arg) || changed;
                 }
             } else {
@@ -468,24 +508,37 @@ SCS3D.Agent = function(device) {
         };
     }
 
-    var comm = SCS3D.Comm();
-    var taps = SCS3D.Syncopath();
+    const comm = SCS3D.Comm();
+    const taps = SCS3D.Syncopath();
 
+    /**
+     * @param control
+     * @param handler
+     */
     function expect(control, handler) {
         demux(function(control) {
             comm.expect(control, handler);
         })(control);
     }
 
+    /**
+     * @param channel
+     * @param control
+     * @param handler
+     */
     function watch(channel, control, handler) {
         comm.watch(channel, control, handler);
     }
 
+    /**
+     * @param controls
+     * @param handler
+     */
     function watchmulti(controls, handler) {
-        var values = {};
-        var wait = 0;
+        const values = {};
+        let wait = 0;
 
-        var watchPos = function(valuePos) {
+        const watchPos = function(valuePos) {
             watch(controls[k][0], controls[k][1], function(value) {
                 values[valuePos] = value;
 
@@ -509,12 +562,15 @@ SCS3D.Agent = function(device) {
     // Send MIDI message to device
     // Param message: list of three MIDI bytes
     // Param force: send value regardless of last recorded state
-    var tell = demux(function(message, force) {
+    const tell = demux(function(message, force) {
         comm.base(message, force);
     });
 
     // Map engine values in the range [0..1] to lights
     // translator maps from [0..1] to a midi message (three bytes)
+    /**
+     * @param translator
+     */
     function patch(translator) {
         return function(value) {
             tell(translator(value));
@@ -522,15 +578,22 @@ SCS3D.Agent = function(device) {
     }
 
     // Patch multiple
+    /**
+     * @param translator
+     */
     function patchleds(translator) {
         return function(value) {
-            var msgs = translator(value);
-            for (var i in msgs) {
-                if (msgs.hasOwnProperty(i)) tell(msgs[i]);
+            const msgs = translator(value);
+            for (const i in msgs) {
+                if (msgs.hasOwnProperty(i)) { tell(msgs[i]); }
             }
         };
     }
 
+    /**
+     * @param off
+     * @param on
+     */
     function binarylight(off, on) {
         return function(value) {
             tell(value ? on : off);
@@ -538,57 +601,66 @@ SCS3D.Agent = function(device) {
     }
 
     // Return a handler that lights one LED depending on value
+    /**
+     * @param lights
+     */
     function Needle(lights) {
-        var range = lights.length - 1;
+        const range = lights.length - 1;
         return function(value) {
             // Where's the needle?
             // On the first light for zero values, on the last for one.
-            var pos = null;
+            let pos = null;
             if (value !== null) {
                 pos = Math.min(range, Math.round(value * range));
             }
 
-            var i = 0;
+            let i = 0;
             for (; i <= range; i++) {
-                var light = lights[i];
-                var on = i === pos;
+                const light = lights[i];
+                const on = i === pos;
                 tell([light[0], light[1], +on]);
             }
         };
     }
 
     // Return a handler that lights LED from the center of the meter
+    /**
+     * @param lights
+     */
     function Centerbar(lights) {
-        var count = lights.length;
-        var range = count - 1;
-        var center = Math.round(count / 2) - 1; // Zero-based
+        const count = lights.length;
+        const range = count - 1;
+        const center = Math.round(count / 2) - 1; // Zero-based
         return function(value) {
-            var pos = Math.max(0, Math.min(range, Math.round(value * range)));
-            var left = Math.min(center, pos);
-            var right = Math.max(center, pos);
-            var i = 0;
+            const pos = Math.max(0, Math.min(range, Math.round(value * range)));
+            const left = Math.min(center, pos);
+            const right = Math.max(center, pos);
+            let i = 0;
             for (; i < count; i++) {
-                var light = lights[i];
-                var on = i >= left && i <= right;
+                const light = lights[i];
+                const on = i >= left && i <= right;
                 tell([light[0], light[1], +on]);
             }
         };
     }
 
 
+    /**
+     * @param lights
+     */
     function CircleCenterbar(lights) {
-        var count = lights.length;
-        var range = count - 1;
-        var center = range / 2; // Zero-based
+        const count = lights.length;
+        const range = count - 1;
+        const center = range / 2; // Zero-based
         return function(value) {
-            var pos = Math.max(0, Math.min(range, (1 - value) * range));
-            var left = Math.min(center, pos);
-            var right = Math.max(center, pos);
+            const pos = Math.max(0, Math.min(range, (1 - value) * range));
+            const left = Math.min(center, pos);
+            const right = Math.max(center, pos);
 
-            var i = 0;
+            let i = 0;
             for (; i < count; i++) {
-                var light = lights[i];
-                var on = i >= left && i <= right;
+                const light = lights[i];
+                const on = i >= left && i <= right;
                 tell([light[0], light[1], +on]);
             }
         };
@@ -596,56 +668,67 @@ SCS3D.Agent = function(device) {
 
     // Return a handler that lights LED from the bottom of the meter
     // For zero values no light is turned on
+    /**
+     * @param lights
+     */
     function Bar(lights) {
-        var count = lights.length;
-        var range = count - 1;
+        const count = lights.length;
+        const range = count - 1;
         return function(value) {
-            var pos;
+            let pos;
             if (value === 0) {
                 pos = -1; // no light
             } else {
                 pos = Math.max(0, Math.min(range, Math.round(value * range)));
             }
-            var i = 0;
+            let i = 0;
             for (; i < lights.length; i++) {
-                var light = lights[i];
-                var on = i <= pos;
+                const light = lights[i];
+                const on = i <= pos;
                 tell([light[0], light[1], +on]);
             }
         };
     }
 
     // Create a function that returns a constant value
-    var constant = function(val) {
-        var constant = val;
+    const constant = function(val) {
+        const constant = val;
         return function() {
             return constant;
         };
     };
 
     // Light leds according to function
+    /**
+     * @param lights
+     * @param maskfunc
+     */
     function lightsmask(lights, maskfunc) {
-        var mask = function(nr) {
+        const mask = function(nr) {
             return function(value, ticks) {
                 return maskfunc(lights.length, nr, value, ticks);
             };
         };
 
-        for (var nr in lights) {
-            var light = lights[lights.length - 1 - nr];
+        for (const nr in lights) {
+            const light = lights[lights.length - 1 - nr];
             comm.mask(light, mask(nr), true);
         }
     }
 
     // Light leds in the circle according to pattern
     // Pattern is a two-dimensional array 3 x 7 of bools
+    /**
+     * @param pattern
+     * @param rate
+     */
     function centerlights(pattern, rate) {
-        var slidernames = ['left', 'middle', 'right'];
-        for (var y in slidernames) {
-            var lights = device.slider[slidernames[y]].meter;
-            for (var x in lights) {
-                var light = lights[lights.length - 1 - x];
-                var pat = pattern[x][y];
+        const slidernames = ["left", "middle", "right"];
+        for (const y in slidernames) {
+            const lights = device.slider[slidernames[y]].meter;
+            for (const x in lights) {
+                const light = lights[lights.length - 1 - x];
+                const pat = pattern[x][y];
                 if (pat.length) {
                     // It moves!
                     comm.mask([light[0], light[1]], Blinker(rate, pat), true);
@@ -661,44 +744,52 @@ SCS3D.Agent = function(device) {
     // First parameter controls the blink rate where bigger is slower
     // (starts at 1; 2 is half the speed)
     // Second parameter provides a blink pattern which is a list of bits
+    /**
+     * @param rate
+     * @param pattern
+     */
     function Blinker(rate, pattern) {
         return function(value, ticks) {
             return pattern[Math.floor(ticks / rate) % pattern.length] ? !value : value;
         };
     }
 
-    var blinken = {
+    const blinken = {
         fast: new Blinker(1, [1, 0]),
         heartbeat: new Blinker(1, [1, 0, 1, 0, 0, 0, 0, 0, 0]),
     };
 
     // Show a spinning light in remembrance of analog technology
+    /**
+     * @param channel
+     * @param warnDuration
+     */
     function spinLight(channel, warnDuration) {
         watchmulti({
-            'position': [channel, 'playposition'],
-            'duration': [channel, 'duration'],
-            'play': [channel, 'play'],
-            'play_indicator': [channel, 'play_indicator'],
-            'rate': [channel, 'rate'],
-            'range': [channel, 'rateRange']
+            "position": [channel, "playposition"],
+            "duration": [channel, "duration"],
+            "play": [channel, "play"],
+            "play_indicator": [channel, "play_indicator"],
+            "rate": [channel, "rate"],
+            "range": [channel, "rateRange"]
         }, function(values) {
             // Duration is not rate-corrected
-            var duration = values.duration;
+            const duration = values.duration;
 
             // Which means the seconds we get are not rate-corrected either.
             // They tick faster for higher rates.
-            var seconds = duration * values.position;
+            const seconds = duration * values.position;
 
             // 33⅓rpm = 100 / 3 / 60 rounds/second = 1.8 seconds/round
-            var rounds = seconds / 1.8;
+            const rounds = seconds / 1.8;
 
             // Fractional part is needle's position in the circle
             // Light addressing starts bottom left, add offset so it starts at top like the spinnies
-            var needle = (rounds + 0.5) % 1;
+            const needle = (rounds + 0.5) % 1;
 
-            var lights = device.slider.circle.meter;
-            var count = lights.length;
-            var pos = false;
+            const lights = device.slider.circle.meter;
+            const count = lights.length;
+            let pos = false;
 
             // Don't show position indicator when the end is reached
             if (values.play_indicator) {
@@ -706,20 +797,20 @@ SCS3D.Agent = function(device) {
             }
 
             // Add a warning indicator for the last seconds of a song
-            var left = duration - seconds;
+            const left = duration - seconds;
 
             // Because the seconds are not rate-corrected, we must scale
             // warnDuration according to pitch rate.
-            var scaledWarnDuration = warnDuration + warnDuration * ((values.rate - 0.5) * 2 * values.range);
-            var warnPos = false;
+            const scaledWarnDuration = warnDuration + warnDuration * ((values.rate - 0.5) * 2 * values.range);
+            let warnPos = false;
             if (values.play_indicator && left < scaledWarnDuration) {
                 // Add a blinking light that runs a tad slower so the needle
                 // will reach it when the track runs out
-                var warnOffset = count - Math.floor(count * (left / scaledWarnDuration));
+                const warnOffset = count - Math.floor(count * (left / scaledWarnDuration));
                 warnPos = (pos + warnOffset) % count;
             }
 
-            var i = 0;
+            let i = 0;
             for (; i < count; i++) {
                 if (i === warnPos) {
                     comm.mask(lights[i], values.play ? blinken.heartbeat : blinken.fast, true);
@@ -735,6 +826,10 @@ SCS3D.Agent = function(device) {
     }
 
 
+    /**
+     * @param c1
+     * @param c2
+     */
     function both(c1, c2) {
         return function(value) {
             c1(value);
@@ -742,6 +837,9 @@ SCS3D.Agent = function(device) {
         };
     }
 
+    /**
+     * @param handler
+     */
     function invert(handler) {
         return function(value) {
             return handler(1 - value);
@@ -750,6 +848,10 @@ SCS3D.Agent = function(device) {
 
 
     // absolute control
+    /**
+     * @param channel
+     * @param control
+     */
     function set(channel, control) {
         return function(value) {
             engine.setParameter(channel, control,
@@ -760,21 +862,34 @@ SCS3D.Agent = function(device) {
 
 
     // use circle as a fader with dead zone to avoid accidental cutover
+    /**
+     * @param channel
+     * @param control
+     */
     function circleset(channel, control) {
         return function(value) {
-            var turned = (value / 127 + 0.5) % 1;
-            var centered = (turned - 0.5) * 20 / 16;
-            var normalized = Math.max(0, Math.min(1, centered + 0.5));
+            const turned = (value / 127 + 0.5) % 1;
+            const centered = (turned - 0.5) * 20 / 16;
+            const normalized = Math.max(0, Math.min(1, centered + 0.5));
             engine.setParameter(channel, control, normalized);
         };
     }
 
+    /**
+     * @param channel
+     * @param control
+     * @param value
+     */
     function setConst(channel, control, value) {
         return function() {
             engine.setParameter(channel, control, value);
         };
     }
 
+    /**
+     * @param channel
+     * @param control
+     */
     function reset(channel, control) {
         return function() {
             engine.reset(channel, control);
@@ -782,8 +897,13 @@ SCS3D.Agent = function(device) {
     }
 
     // relative control
+    /**
+     * @param channel
+     * @param control
+     * @param scale
+     */
     function budge(channel, control, scale) {
-        var length = 128 / (scale || 1);
+        const length = 128 / (scale || 1);
         return function(offset) {
             engine.setValue(channel, control,
                 engine.getValue(channel, control) + (offset - 64) / length
@@ -792,49 +912,63 @@ SCS3D.Agent = function(device) {
     }
 
     // switch
+    /**
+     * @param channel
+     * @param control
+     */
     function toggle(channel, control) {
         return function() {
             engine.setValue(channel, control, !engine.getValue(channel, control));
         };
     }
 
+    /**
+     *
+     */
     function Switch() {
-        var engaged = false;
+        let engaged = false;
 
+        /**
+         * @param state
+         */
         function change(state) {
-            var prev = engaged;
+            const prev = engaged;
             engaged = !!state; // Coerce to bool
             return engaged !== prev;
         }
         return {
-            'change': function(state) {
+            "change": function(state) {
                 return change(state);
             },
-            'engage': function() {
+            "engage": function() {
                 return change(true);
             },
-            'cancel': function() {
+            "cancel": function() {
                 return change(false);
             },
-            'toggle': function() {
+            "toggle": function() {
                 return change(!engaged);
             },
-            'engaged': function() {
+            "engaged": function() {
                 return engaged;
             },
-            'choose': function(off, on) {
+            "choose": function(off, on) {
                 return engaged ? on : off;
             }
         };
     }
 
+    /**
+     * @param presetMode
+     * @param patches
+     */
     function Modeswitch(presetMode, patches) {
-        var engaged = presetMode;
+        let engaged = presetMode;
 
         return {
             engage: function(newMode) {
                 return function() {
-                    if (engaged === newMode) return false;
+                    if (engaged === newMode) { return false; }
                     engaged = newMode;
                     return true;
                 };
@@ -848,24 +982,28 @@ SCS3D.Agent = function(device) {
         };
     }
 
+    /**
+     * @param presetMode
+     * @param modePatches
+     */
     function MultiModeswitch(presetMode, modePatches) {
-        var engagedMode = presetMode;
-        var engagedPatch = modePatches[engagedMode][0];
+        let engagedMode = presetMode;
+        let engagedPatch = modePatches[engagedMode][0];
 
         // For every mode, keep the patch that was engaged last
-        var engaged = {};
+        const engaged = {};
         engaged[presetMode] = engagedPatch;
 
-        var heldMode = false;
-        var heldPatch = false;
-        var lastHold = 0;
+        let heldMode = false;
+        let heldPatch = false;
+        let lastHold = 0;
 
         return {
             hold: function(newHeldMode) {
                 return function() {
                     heldMode = newHeldMode;
                     heldPatch = engaged[heldMode];
-                    if (!heldPatch) heldPatch = modePatches[heldMode][0];
+                    if (!heldPatch) { heldPatch = modePatches[heldMode][0]; }
 
                     lastHold = new Date().getTime();
                     return true;
@@ -876,7 +1014,7 @@ SCS3D.Agent = function(device) {
                     if (releasedMode === heldMode || releasedMode === true) {
                         if (new Date().getTime() - lastHold < 200) {
                             // The button was just touched, not held
-                            var patches = modePatches[heldMode];
+                            const patches = modePatches[heldMode];
                             if (engagedMode === heldMode) {
                                 // Cycle to the next patch
                                 engagedPatch = patches[(patches.indexOf(engagedPatch) + 1) % patches.length];
@@ -907,8 +1045,8 @@ SCS3D.Agent = function(device) {
     }
 
 
-    var ExpectHeld = function(ctrl, whenShort, whenHeld) {
-        var lastHold = 0;
+    const ExpectHeld = function(ctrl, whenShort, whenHeld) {
+        let lastHold = 0;
         expect(ctrl.touch, function() {
             lastHold = new Date().getTime();
         });
@@ -926,12 +1064,15 @@ SCS3D.Agent = function(device) {
     // Deck 2: 0b01
     // Deck 3: 0b10
     // Deck 4: 0b11
-    var deck = 0; // Deck 1 is preset
+    let deck = 0; // Deck 1 is preset
 
     // Glean current channels from control value
+    /**
+     * @param value
+     */
     function gleanChannel(value) {
-        var readDeck;
-        var changed = false;
+        let readDeck;
+        let changed = false;
 
         // check third bit and proceed if it's set
         // otherwise the control is assumed not to carry deck information
@@ -940,16 +1081,16 @@ SCS3D.Agent = function(device) {
             // Sure a simple if() cluster would be more clear
 
             // Get side we're on (1 == right)
-            var side = deck & 1;
+            const side = deck & 1;
 
             // Which bit to read (read bit 2 for right)
-            var altBit = 1 << side;
+            const altBit = 1 << side;
 
             // Whether the main or the alt deck is selected on the SCS3M
-            var alt = !!(value & altBit);
+            const alt = !!(value & altBit);
 
             // construct new deck value
-            var newDeck = side | alt << 1;
+            const newDeck = side | alt << 1;
 
             changed = newDeck !== deck;
             deck = newDeck;
@@ -965,9 +1106,12 @@ SCS3D.Agent = function(device) {
         return changed;
     }
 
+    /**
+     * @param handler
+     */
     function repatch(handler) {
         return function(value) {
-            var changed = handler(value);
+            const changed = handler(value);
             if (changed) {
                 comm.clear();
                 patchage();
@@ -975,36 +1119,36 @@ SCS3D.Agent = function(device) {
         };
     }
 
-    var buttons = [device.top.left, device.top.right, device.bottom.left, device.bottom.right];
+    const buttons = [device.top.left, device.top.right, device.bottom.left, device.bottom.right];
 
-    var deckLights = function() {
-        for (var i in buttons) {
-            tell(buttons[i].light[deck === +i ? 'red' : 'black']);
+    const deckLights = function() {
+        for (const i in buttons) {
+            tell(buttons[i].light[deck === +i ? "red" : "black"]);
         }
     };
 
-    var FxPatch = function(nr) {
+    const FxPatch = function(nr) {
         return function(channel, held) {
-            var effectunit = '[EffectRack1_EffectUnit' + (nr + 1) + ']';
-            var effectunit_effect = '[EffectRack1_EffectUnit' + (nr + 1) + '_Effect1]';
+            const effectunit = "[EffectRack1_EffectUnit" + (nr + 1) + "]";
+            const effectunit_effect = "[EffectRack1_EffectUnit" + (nr + 1) + "_Effect1]";
             comm.sysex(device.modeset.slider);
 
             // The first three effect parameters are mapped onto the circle sliders
-            var params = {
-                'parameter1': device.slider.left,
-                'parameter2': device.slider.middle,
-                'parameter3': device.slider.right,
+            const params = {
+                "parameter1": device.slider.left,
+                "parameter2": device.slider.middle,
+                "parameter3": device.slider.right,
             };
 
-            var sliderPatch = function(slider, paramName) {
+            const sliderPatch = function(slider, paramName) {
                 expect(slider.slide.abs, set(effectunit_effect, paramName));
 
                 // When the control is available for this effect unit, we
                 // show a needle indicator on the meter
-                var updater = Needle(slider.meter);
+                const updater = Needle(slider.meter);
                 watchmulti({
-                    loaded: [effectunit_effect, paramName+'_loaded'],
-                    value:  [effectunit_effect, paramName]
+                    loaded: [effectunit_effect, paramName+"_loaded"],
+                    value: [effectunit_effect, paramName]
                 }, function(param) {
                     if (param.loaded) {
                         updater(param.value);
@@ -1015,57 +1159,57 @@ SCS3D.Agent = function(device) {
                 });
             };
 
-            for (var paramName in params) {
+            for (const paramName in params) {
                 sliderPatch(params[paramName], paramName);
             }
 
             if (held) {
                 // change effect when slider is touched
                 // Because the slider release does not tell us where it was released, we read the direction from the slide events
-                var direction = 1;
+                let direction = 1;
                 expect(device.pitch.slide.abs, function(value) {
                     direction = value < 64 ? 1 : -1;
                 });
                 expect(device.pitch.release, function() {
-                    setConst(effectunit, 'chain_selector', direction)();
+                    setConst(effectunit, "chain_selector", direction)();
                 });
 
                 Bar(device.pitch.meter)(0); // Turn off pitch bar lights
                 lightsmask(device.pitch.meter, function(count, nr, value, ticks) {
-                    var range = (count) / 2;
-                    var center = Math.round(count / 2) - 1; // Zero-based
-                    var lighted = Math.abs(nr - center) === ticks % range;
+                    const range = (count) / 2;
+                    const center = Math.round(count / 2) - 1; // Zero-based
+                    const lighted = Math.abs(nr - center) === ticks % range;
                     return lighted ? !value : value;
                 });
             } else {
                 // Pitch slider controls wetness
                 tell(device.pitch.light.red.off);
                 tell(device.pitch.light.blue.off);
-                watch(effectunit, 'mix', Bar(device.pitch.meter));
-                expect(device.pitch.slide.abs, set(effectunit, 'mix'));
+                watch(effectunit, "mix", Bar(device.pitch.meter));
+                expect(device.pitch.slide.abs, set(effectunit, "mix"));
             }
 
             // Button light color:
             // When effect is assigned to deck: blue
             // When effect is the currently active: red
             // May be both
-            var fxlight = function(light, active) {
+            const fxlight = function(light, active) {
                 return function(enabled) {
-                    var color = enabled ? (active ? 'purple' : 'blue') : (active ? 'red' : 'black');
+                    const color = enabled ? (active ? "purple" : "blue") : (active ? "red" : "black");
                     tell(light[color]);
                 };
             };
 
-            for (var i in buttons) {
-                var button = buttons[i];
-                var unit = (+i + 1); // coerce i to num
-                var assigned_effectunit = '[EffectRack1_EffectUnit' + unit + ']';
-                var effectunit_enable = 'group_' + channel + '_enable';
+            for (const i in buttons) {
+                const button = buttons[i];
+                const unit = (+i + 1); // coerce i to num
+                const assigned_effectunit = "[EffectRack1_EffectUnit" + unit + "]";
+                const effectunit_enable = "group_" + channel + "_enable";
                 if (held) {
                     expect(button.touch, repatch(toggle(assigned_effectunit, effectunit_enable)));
                     watch(assigned_effectunit, effectunit_enable, fxlight(button.light, deck === +i));
                 } else {
-                    var activate = repatch(effectModes[channel].engage(i));
+                    const activate = repatch(effectModes[channel].engage(i));
                     expect(button.touch, activate);
                     watch(assigned_effectunit, effectunit_enable, fxlight(button.light, nr === +i));
                 }
@@ -1074,73 +1218,88 @@ SCS3D.Agent = function(device) {
     };
 
     // Active effect mode per channel
-    var effectPatches = [FxPatch(0), FxPatch(1), FxPatch(2), FxPatch(3)];
+    const effectPatches = [FxPatch(0), FxPatch(1), FxPatch(2), FxPatch(3)];
     var effectModes = {
-        '[Channel1]': Modeswitch(0, effectPatches),
-        '[Channel2]': Modeswitch(1, effectPatches),
-        '[Channel3]': Modeswitch(2, effectPatches),
-        '[Channel4]': Modeswitch(3, effectPatches)
+        "[Channel1]": Modeswitch(0, effectPatches),
+        "[Channel2]": Modeswitch(1, effectPatches),
+        "[Channel3]": Modeswitch(2, effectPatches),
+        "[Channel4]": Modeswitch(3, effectPatches)
     };
 
-    var FxSuperPatch = function(nr) {
+    const FxSuperPatch = function(nr) {
         return function(channel, held) {
-            var effectunit = '[EffectRack1_EffectUnit' + (nr + 1) + ']';
+            const effectunit = "[EffectRack1_EffectUnit" + (nr + 1) + "]";
             comm.sysex(device.modeset.circle);
-            watch(effectunit, 'super1', CircleCenterbar(device.slider.circle.meter));
-            expect(device.slider.circle.slide.abs, circleset(effectunit, 'super1'));
+            watch(effectunit, "super1", CircleCenterbar(device.slider.circle.meter));
+            expect(device.slider.circle.slide.abs, circleset(effectunit, "super1"));
         };
     };
 
     // Active effect mode per channel
-    var effectSuperPatches = [FxSuperPatch(0), FxSuperPatch(1), FxSuperPatch(2), FxSuperPatch(3)];
-    var effectSuperModes = {
-        '[Channel1]': Modeswitch(0, effectSuperPatches),
-        '[Channel2]': Modeswitch(1, effectSuperPatches),
-        '[Channel3]': Modeswitch(2, effectSuperPatches),
-        '[Channel4]': Modeswitch(3, effectSuperPatches)
+    const effectSuperPatches = [FxSuperPatch(0), FxSuperPatch(1), FxSuperPatch(2), FxSuperPatch(3)];
+    const effectSuperModes = {
+        "[Channel1]": Modeswitch(0, effectSuperPatches),
+        "[Channel2]": Modeswitch(1, effectSuperPatches),
+        "[Channel3]": Modeswitch(2, effectSuperPatches),
+        "[Channel4]": Modeswitch(3, effectSuperPatches)
     };
 
 
+    /**
+     * @param channel
+     * @param held
+     */
     function fxpatch(channel, held) {
         tell(device.mode.fx.light.red);
         effectModes[channel].patch()(channel, held);
     }
 
+    /**
+     * @param channel
+     * @param held
+     */
     function fxsuperpatch(channel, held) {
         tell(device.mode.fx.light.blue);
         effectSuperModes[channel].patch()(channel, held);
     }
 
+    /**
+     * @param channel
+     * @param held
+     */
     function eqpatch(channel, held) {
         comm.sysex(device.modeset.slider);
         tell(device.mode.eq.light.red);
         pitchPatch(channel);
 
-        var eff = "[EqualizerRack1_" + channel + "_Effect1]";
-        watch(eff, 'parameter1', Centerbar(device.slider.left.meter));
-        watch(eff, 'parameter2', Centerbar(device.slider.middle.meter));
-        watch(eff, 'parameter3', Centerbar(device.slider.right.meter));
+        const eff = "[EqualizerRack1_" + channel + "_Effect1]";
+        watch(eff, "parameter1", Centerbar(device.slider.left.meter));
+        watch(eff, "parameter2", Centerbar(device.slider.middle.meter));
+        watch(eff, "parameter3", Centerbar(device.slider.right.meter));
 
-        var op = held ? reset : set;
-        expect(device.slider.left.slide.abs, op(eff, 'parameter1'));
-        expect(device.slider.middle.slide.abs, op(eff, 'parameter2'));
-        expect(device.slider.right.slide.abs, op(eff, 'parameter3'));
+        const op = held ? reset : set;
+        expect(device.slider.left.slide.abs, op(eff, "parameter1"));
+        expect(device.slider.middle.slide.abs, op(eff, "parameter2"));
+        expect(device.slider.right.slide.abs, op(eff, "parameter3"));
 
 
         deckLights();
     }
 
+    /**
+     * @param rolling
+     */
     function LoopPatch(rolling) {
         return function(channel) {
             // Keeps the current loop length
-            var currentLen = false;
+            let currentLen = false;
 
-            var cancel = function() {
-                if (currentLen) setConst(channel, 'reloop_exit', 1)();
+            const cancel = function() {
+                if (currentLen) { setConst(channel, "reloop_exit", 1)(); }
                 currentLen = false;
             };
 
-            var setup = function(engage, cancelIfEngaged) {
+            const setup = function(engage, cancelIfEngaged) {
                 comm.sysex(device.modeset.circle);
                 tell(rolling ? device.mode.loop.light.blue : device.mode.loop.light.red);
                 pitchPatch(channel);
@@ -1148,33 +1307,33 @@ SCS3D.Agent = function(device) {
                 beatJump(channel);
 
                 // Available loop lengths are powers of two in the range [-5..6]
-                var lengths = ['0.03125', '0.0625', '0.125', '0.25', '0.5', '1', '2', '4', '8', '16', '32', '64'];
+                const lengths = ["0.03125", "0.0625", "0.125", "0.25", "0.5", "1", "2", "4", "8", "16", "32", "64"];
                 expect(device.slider.circle.slide.abs, function(value) {
                     // Map to range [-63..64] where 0 is top center
-                    var lr = ((value + 64) % 128 - 63);
+                    const lr = ((value + 64) % 128 - 63);
 
                     // Map the circle slider position to a loop length
-                    var exp = Math.ceil(Math.max(-5, Math.min(6, lr / 8)));
-                    var len = lengths[4 + exp]; // == Math.pow(2, exp);
+                    const exp = Math.ceil(Math.max(-5, Math.min(6, lr / 8)));
+                    const len = lengths[4 + exp]; // == Math.pow(2, exp);
 
-                    if (len === undefined) return;
-                    if (len === currentLen) return;
+                    if (len === undefined) { return; }
+                    if (len === currentLen) { return; }
                     currentLen = len;
 
                     if (rolling) {
-                        set(channel, 'beatlooproll_' + len + '_activate')(true);
+                        set(channel, "beatlooproll_" + len + "_activate")(true);
                         engage();
                     } else {
-                        set(channel, 'beatloop_' + len + '_activate')(true);
+                        set(channel, "beatloop_" + len + "_activate")(true);
                     }
                 });
 
-                var engineControls = {};
+                const engineControls = {};
                 lengths.forEach(function(len, index) {
-                    engineControls[index] = [channel, 'beatloop_' + len + '_enabled'];
+                    engineControls[index] = [channel, "beatloop_" + len + "_enabled"];
                 });
                 watchmulti(engineControls, function(values) {
-                    var activeIndex = false;
+                    let activeIndex = false;
                     lengths.forEach(function(len, index) {
                         if (values[index]) {
                             currentLen = len;
@@ -1201,19 +1360,19 @@ SCS3D.Agent = function(device) {
                 } else {
                     // In normal loop mode, touching center when the loop is
                     // not active engages it
-                    expect(device.slider.middle.release, setConst(channel, 'reloop_exit', 1));
+                    expect(device.slider.middle.release, setConst(channel, "reloop_exit", 1));
                 }
 
                 watchmulti({
-                    enabled: [channel, 'loop_enabled'],
-                    position: [channel, 'playposition'],
-                    start: [channel, 'loop_start_position'],
-                    end: [channel, 'loop_end_position'],
-                    samples: [channel, 'track_samples']
+                    enabled: [channel, "loop_enabled"],
+                    position: [channel, "playposition"],
+                    start: [channel, "loop_start_position"],
+                    end: [channel, "loop_end_position"],
+                    samples: [channel, "track_samples"]
                 }, function(values) {
                     if (values.enabled) {
-                        var samplepos = values.position * values.samples;
-                        var pos = Math.floor((samplepos - values.start) / (values.end - values.start) * 8);
+                        const samplepos = values.position * values.samples;
+                        const pos = Math.floor((samplepos - values.start) / (values.end - values.start) * 8);
                         centerlights([
                             [0, 0, 0],
                             [0, pos === 0 ? 0 : 1, 0],
@@ -1241,7 +1400,7 @@ SCS3D.Agent = function(device) {
             if (rolling) {
                 // The rolling loop will be canceled as soon as you release the circle
                 // or switch to another mode.
-                Autocancel('rolling', setup, cancel);
+                Autocancel("rolling", setup, cancel);
             } else {
                 // Normal loops are canceled only by touching center
                 setup(false, false);
@@ -1251,7 +1410,7 @@ SCS3D.Agent = function(device) {
 
     // Keep track of hotcue to reset on layout changes or when another hotcue
     // becomes active.
-    var resetHotcue = false;
+    let resetHotcue = false;
 
     /* Patch circle buttons to five hotcues
      *
@@ -1265,8 +1424,11 @@ SCS3D.Agent = function(device) {
      * activate. Passing 0 selects hotcues 1 through 5, passing 2
      * selects hotcues 11 through 15.
      */
+    /**
+     * @param trigset
+     */
     function Trigpatch(trigset) {
-        var touchRelease = function(channel, field, control) {
+        const touchRelease = function(channel, field, control) {
             // We need to send a zero when the control is released again.
             // But this may happen after another control is touched.
             // So the reset must happen whenever
@@ -1279,16 +1441,16 @@ SCS3D.Agent = function(device) {
             // without intricate logic. For older devices two fields are
             // merged into one but we receive note on then off when sliding
             // between the two.
-            var cocked = 0;
+            let cocked = 0;
 
-            var release = function() {
-                if (cocked === 1) engine.setValue(channel, control, 0);
-                if (cocked > 0) cocked -= 1;
+            const release = function() {
+                if (cocked === 1) { engine.setValue(channel, control, 0); }
+                if (cocked > 0) { cocked -= 1; }
             };
             expect(field.touch, function() {
                 // resetHotcue might be set by another hotcue
                 if (cocked === 0) {
-                    if (resetHotcue) resetHotcue();
+                    if (resetHotcue) { resetHotcue(); }
                     engine.setValue(channel, control, 1);
                 }
                 resetHotcue = function() {
@@ -1307,20 +1469,20 @@ SCS3D.Agent = function(device) {
             pitchPatch(channel);
             deckLights();
 
-            var i = 0;
-            var offset = trigset * 5;
+            let i = 0;
+            const offset = trigset * 5;
             for (; i < 5; i++) {
-                var hotcue = offset + i + 1;
-                var field = device.field[i];
+                const hotcue = offset + i + 1;
+                const field = device.field[i];
                 if (held) {
-                    expect(field.touch, setConst(channel, 'hotcue_' + hotcue + '_clear', true));
+                    expect(field.touch, setConst(channel, "hotcue_" + hotcue + "_clear", true));
                 } else {
-                    touchRelease(channel, field, 'hotcue_' + hotcue + '_activate');
+                    touchRelease(channel, field, "hotcue_" + hotcue + "_activate");
                 }
-                watch(channel, 'hotcue_' + hotcue + '_enabled', binarylight(field.light.black, field.light.red));
+                watch(channel, "hotcue_" + hotcue + "_enabled", binarylight(field.light.black, field.light.red));
             }
 
-            var t = held ? [1, 0] : 1;
+            const t = held ? [1, 0] : 1;
             centerlights([
                 [0, 0, 0],
                 [t, trigset === 2 ? t : 0, t],
@@ -1335,7 +1497,7 @@ SCS3D.Agent = function(device) {
 
     // On mode switch, temporary loops and rate changes must be canceled
     // This dictionary keeps the canceling callbacks
-    var autocancel = {};
+    let autocancel = {};
 
     // Registrar for modes that have temporary states to be canceled on mode changes
     // Arguments:
@@ -1346,29 +1508,44 @@ SCS3D.Agent = function(device) {
     //        when the temp mode is activated, setup should call engage()
     //        when the temp mode should be canceled, cancelIfEngaged() which in turn will call the cancel callback passed to the registrar if (and only if) the temp mode was activated.
     // cancel: function to call to cancel the temp mode
+    /**
+     * @param name
+     * @param setup
+     * @param cancel
+     */
     function Autocancel(name, setup, cancel) {
         // Nausea: The feeling you're implementing overcomplicated logic
-        var engage = function() {
+        const engage = function() {
             autocancel[name] = cancel;
         };
-        var cancelIfEngaged = function() {
-            if (autocancel[name]) autocancel[name]();
+        const cancelIfEngaged = function() {
+            if (autocancel[name]) { autocancel[name](); }
             delete autocancel[name];
         };
         setup(engage, cancelIfEngaged);
     }
 
+    /**
+     * @param channel
+     */
     function needleDrop(channel) {
         // Needledrop into track
         expect(device.slider.circle.slide.abs, circleset(channel, "playposition"));
         watch(channel, "playposition", invert(Bar(device.slider.circle.meter)));
     }
 
+    /**
+     * @param channel
+     */
     function beatJump(channel) {
-        expect(device.top.left.touch, setConst(channel, 'beatjump_1_backward', 1));
-        expect(device.top.right.touch, setConst(channel, 'beatjump_1_forward', 1));
+        expect(device.top.left.touch, setConst(channel, "beatjump_1_backward", 1));
+        expect(device.top.right.touch, setConst(channel, "beatjump_1_forward", 1));
     }
 
+    /**
+     * @param channel
+     * @param held
+     */
     function scratchpatch(channel, held) {
         comm.sysex(device.modeset.circle);
         tell(device.mode.vinyl.light.blue);
@@ -1382,7 +1559,7 @@ SCS3D.Agent = function(device) {
             deckLights();
         }
 
-        var lights = function(forward) {
+        const lights = function(forward) {
             centerlights([
                 [forward ? 1 : 0, 1, forward ? 0 : 1],
                 [0, 1, 0],
@@ -1396,10 +1573,10 @@ SCS3D.Agent = function(device) {
         lights(true);
 
         // HACK ugly logic to avoid restructuring
-        if (held) return;
+        if (held) { return; }
 
-        var channelno = parseInt(channel[8], 10); // Extract channelno to integer
-        Autocancel('scratch', function(engage, cancelIfEngaged) {
+        const channelno = parseInt(channel[8], 10); // Extract channelno to integer
+        Autocancel("scratch", function(engage, cancelIfEngaged) {
             expect(device.slider.circle.touch, function() {
                 engage();
                 engine.scratchEnable(channelno, 128, 33 + 1 / 3, 1 / 8, 1 / 8 / 32);
@@ -1428,6 +1605,10 @@ SCS3D.Agent = function(device) {
      * Sliding on the center bar will temporarily raise or lower the rate by a
      * fixed amount. The circle slider functions as a slow jog wheel.
      */
+    /**
+     * @param channel
+     * @param held
+     */
     function vinylpatch(channel, held) {
         comm.sysex(device.modeset.circle);
         pitchPatch(channel);
@@ -1441,43 +1622,43 @@ SCS3D.Agent = function(device) {
             deckLights();
 
             expect(device.slider.circle.slide.rel, function(value) {
-                var playing = engine.getValue(channel, 'play');
-                var amount = (value - 64) / 64;
-                var jogAmount = playing ? amount * 10 : amount;
-                engine.setValue(channel, 'jog', jogAmount);
+                const playing = engine.getValue(channel, "play");
+                const amount = (value - 64) / 64;
+                const jogAmount = playing ? amount * 10 : amount;
+                engine.setValue(channel, "jog", jogAmount);
             });
         }
 
-        Autocancel('temprate', function(engage, cancel) {
+        Autocancel("temprate", function(engage, cancel) {
             expect(device.slider.middle.slide.abs, function(value) {
                 engage();
-                engine.setParameter(channel, 'rate_temp_down', value < 57);
-                engine.setParameter(channel, 'rate_temp_up', value > 69);
+                engine.setParameter(channel, "rate_temp_down", value < 57);
+                engine.setParameter(channel, "rate_temp_up", value > 69);
             });
             expect(device.slider.middle.release, cancel);
         }, function() {
-            engine.setParameter(channel, 'rate_temp_down', false);
-            engine.setParameter(channel, 'rate_temp_up', false);
+            engine.setParameter(channel, "rate_temp_down", false);
+            engine.setParameter(channel, "rate_temp_up", false);
         });
 
         watchmulti({
-            'down': [channel, 'rate_temp_down'],
-            'up': [channel, 'rate_temp_up']
+            "down": [channel, "rate_temp_down"],
+            "up": [channel, "rate_temp_up"]
         }, function(values) {
-            var dir = (values.up - values.down) / 2 + 0.5;
+            const dir = (values.up - values.down) / 2 + 0.5;
             Centerbar(device.slider.left.meter)(dir - 0.1);
             Centerbar(device.slider.middle.meter)(dir + 0.1);
             Centerbar(device.slider.right.meter)(dir - 0.1);
         });
 
-        Autocancel('fast', function(engage, cancel) {
-            expect(device.bottom.left.touch, both(engage, setConst(channel, 'back', 1)));
+        Autocancel("fast", function(engage, cancel) {
+            expect(device.bottom.left.touch, both(engage, setConst(channel, "back", 1)));
             expect(device.bottom.left.release, cancel);
-            expect(device.bottom.right.touch, both(engage, setConst(channel, 'fwd', 1)));
+            expect(device.bottom.right.touch, both(engage, setConst(channel, "fwd", 1)));
             expect(device.bottom.right.release, cancel);
         }, function() {
-            setConst(channel, 'back', 0)();
-            setConst(channel, 'fwd', 0)();
+            setConst(channel, "back", 0)();
+            setConst(channel, "fwd", 0)();
         });
     }
 
@@ -1489,6 +1670,10 @@ SCS3D.Agent = function(device) {
      * Holding the deck button allows changing the active deck by pressing
      * one of the four buttons around the circle.
      */
+    /**
+     * @param channel
+     * @param held
+     */
     function deckpatch(channel, held) {
         comm.sysex(device.modeset.circle);
         pitchPatch(channel);
@@ -1496,22 +1681,22 @@ SCS3D.Agent = function(device) {
 
         if (held) {
             tell(device.mode.deck.light.purple);
-            var setDeck = function(newDeck) {
+            const setDeck = function(newDeck) {
                 return function() {
-                    var changed = deck !== newDeck;
+                    const changed = deck !== newDeck;
                     if (changed) {
                         deck = newDeck;
 
                         // see gleanChannel() for what we're doing here
-                        var deckState = engine.getValue('[PreviewDeck1]', 'quantize');
+                        let deckState = engine.getValue("[PreviewDeck1]", "quantize");
                         if (deckState & 0x4) {
-                            var side = deck & 1;
-                            var altBit = 1 << side;
-                            var alt = !!(deck & 2);
+                            const side = deck & 1;
+                            const altBit = 1 << side;
+                            const alt = !!(deck & 2);
 
                             // shit gives me headaches, so I'm going to leave it like this
                             deckState = (deckState & ~altBit) | (alt << side);
-                            engine.setValue('[PreviewDeck1]', 'quantize', deckState);
+                            engine.setValue("[PreviewDeck1]", "quantize", deckState);
                         }
                     }
                     return changed;
@@ -1523,21 +1708,21 @@ SCS3D.Agent = function(device) {
             expect(device.bottom.right.touch, repatch(setDeck(3)));
         } else {
             tell(device.mode.deck.light.red);
-            expect(device.top.left.touch, setConst('[Playlist]', 'SelectPrevPlaylist', 1));
-            expect(device.bottom.left.touch, setConst('[Playlist]', 'SelectNextPlaylist', 1));
-            expect(device.top.right.touch, setConst('[Playlist]', 'SelectPrevTrack', 1));
-            expect(device.bottom.right.touch, setConst('[Playlist]', 'SelectNextTrack', 1));
+            expect(device.top.left.touch, setConst("[Playlist]", "SelectPrevPlaylist", 1));
+            expect(device.bottom.left.touch, setConst("[Playlist]", "SelectNextPlaylist", 1));
+            expect(device.top.right.touch, setConst("[Playlist]", "SelectPrevTrack", 1));
+            expect(device.bottom.right.touch, setConst("[Playlist]", "SelectNextTrack", 1));
         }
 
         expect(device.slider.middle.release, function() {
-            engine.setValue(channel, 'LoadSelectedTrack', true);
+            engine.setValue(channel, "LoadSelectedTrack", true);
         });
 
         expect(device.slider.circle.slide.rel, function(value) {
-            engine.setValue('[Playlist]', 'SelectTrackKnob', (value - 64));
+            engine.setValue("[Playlist]", "SelectTrackKnob", (value - 64));
         });
 
-        watch(channel, 'play', function(play) {
+        watch(channel, "play", function(play) {
             if (play) {
                 centerlights([
                     [1, 1, 1],
@@ -1562,28 +1747,28 @@ SCS3D.Agent = function(device) {
         });
     }
 
-    var modeMap = {
-        'fx': [fxpatch, fxsuperpatch],
-        'eq': [eqpatch],
-        'loop': [LoopPatch(false), LoopPatch(true)],
-        'trig': [Trigpatch(0), Trigpatch(1), Trigpatch(2)],
-        'vinyl': [vinylpatch, scratchpatch],
-        'deck': [deckpatch],
+    const modeMap = {
+        "fx": [fxpatch, fxsuperpatch],
+        "eq": [eqpatch],
+        "loop": [LoopPatch(false), LoopPatch(true)],
+        "trig": [Trigpatch(0), Trigpatch(1), Trigpatch(2)],
+        "vinyl": [vinylpatch, scratchpatch],
+        "deck": [deckpatch],
     };
 
 
     // mode for each channel
     var mode = {
-        0: MultiModeswitch('deck', modeMap),
-        1: MultiModeswitch('deck', modeMap),
-        2: MultiModeswitch('deck', modeMap),
-        3: MultiModeswitch('deck', modeMap)
+        0: MultiModeswitch("deck", modeMap),
+        1: MultiModeswitch("deck", modeMap),
+        2: MultiModeswitch("deck", modeMap),
+        3: MultiModeswitch("deck", modeMap)
     };
 
     // Setup a process that keeps sliding a control by a rate that can be changed
-    var Sliding = function(channel, control) {
-        var slidingRate = 0;
-        var budge = function() {
+    const Sliding = function(channel, control) {
+        let slidingRate = 0;
+        const budge = function() {
             if (slidingRate !== 0) {
                 engine.setValue(channel, control,
                     engine.getValue(channel, control) + slidingRate
@@ -1592,41 +1777,41 @@ SCS3D.Agent = function(device) {
         };
         comm.repeat(budge);
         return function(newVal) {
-            var initial = slidingRate === 0;
+            const initial = slidingRate === 0;
             slidingRate = newVal;
-            if (initial) budge();
+            if (initial) { budge(); }
         };
     };
 
     var pitchModeSelect = function() {
-        var activePitchMode = pitchMode[deck];
-        var engagedMode = activePitchMode.engaged();
-        var pitchButtons = {
-            'absrate': device.top.left,
-            'pitch': device.top.right,
-            'rate': device.bottom.left,
-            'relpitch': device.bottom.right,
+        const activePitchMode = pitchMode[deck];
+        const engagedMode = activePitchMode.engaged();
+        const pitchButtons = {
+            "absrate": device.top.left,
+            "pitch": device.top.right,
+            "rate": device.bottom.left,
+            "relpitch": device.bottom.right,
         };
-        for (var modeName in pitchButtons) {
-            var pitchButton = pitchButtons[modeName];
+        for (const modeName in pitchButtons) {
+            const pitchButton = pitchButtons[modeName];
             expect(pitchButton.touch, repatch(activePitchMode.engage(modeName)));
-            tell(pitchButton.light[engagedMode === modeName ? 'blue' : 'black']);
+            tell(pitchButton.light[engagedMode === modeName ? "blue" : "black"]);
         }
     };
 
-    var pitchModeMap = {
+    const pitchModeMap = {
         rate: function(channel, held) {
             tell(device.pitch.light.red.on);
             tell(device.pitch.light.blue.on);
-            watch(channel, 'rate', Centerbar(device.pitch.meter));
+            watch(channel, "rate", Centerbar(device.pitch.meter));
 
             if (held) {
-                expect(device.pitch.slide.abs, reset(channel, 'rate'));
+                expect(device.pitch.slide.abs, reset(channel, "rate"));
             } else {
-                var setRate = Sliding(channel, 'rate');
+                const setRate = Sliding(channel, "rate");
                 expect(device.pitch.slide.abs, function(value) {
-                    var rate = (value - 63) / 32;
-                    var sign = rate > 0 ? 1 : -1;
+                    const rate = (value - 63) / 32;
+                    const sign = rate > 0 ? 1 : -1;
                     setRate(
                         sign * 0.01 * Math.pow(Math.abs(rate), 3)
                     );
@@ -1639,38 +1824,38 @@ SCS3D.Agent = function(device) {
         absrate: function(channel, held) {
             tell(device.pitch.light.red.on);
             tell(device.pitch.light.blue.off);
-            watch(channel, 'rate', Centerbar(device.pitch.meter));
+            watch(channel, "rate", Centerbar(device.pitch.meter));
 
             if (held) {
-                expect(device.pitch.slide.abs, reset(channel, 'rate'));
+                expect(device.pitch.slide.abs, reset(channel, "rate"));
             } else {
-                expect(device.pitch.slide.abs, set(channel, 'rate'));
+                expect(device.pitch.slide.abs, set(channel, "rate"));
             }
         },
         relpitch: function(channel, held) {
             tell(device.pitch.light.red.off);
             tell(device.pitch.light.blue.off);
-            watch(channel, 'pitch', Centerbar(device.pitch.meter));
+            watch(channel, "pitch", Centerbar(device.pitch.meter));
 
             if (held) {
-                expect(device.pitch.slide.rel, reset(channel, 'pitch'));
+                expect(device.pitch.slide.rel, reset(channel, "pitch"));
             } else {
-                expect(device.pitch.slide.rel, budge(channel, 'pitch'));
+                expect(device.pitch.slide.rel, budge(channel, "pitch"));
             }
         },
         pitch: function(channel, held) {
             tell(device.pitch.light.red.off);
             tell(device.pitch.light.blue.on);
-            watch(channel, 'pitch', Centerbar(device.pitch.meter));
+            watch(channel, "pitch", Centerbar(device.pitch.meter));
             if (held) {
-                expect(device.pitch.slide.rel, reset(channel, 'pitch'));
+                expect(device.pitch.slide.rel, reset(channel, "pitch"));
             } else {
-                var direction = 1;
+                let direction = 1;
                 expect(device.pitch.slide.abs, function(val) {
                     direction = val < 64 ? -1 : 1;
                 });
                 expect(device.pitch.release, function() {
-                    engine.setValue(channel, 'pitch', Math.round(engine.getValue(channel, 'pitch') + direction));
+                    engine.setValue(channel, "pitch", Math.round(engine.getValue(channel, "pitch") + direction));
                 });
             }
         }
@@ -1678,38 +1863,41 @@ SCS3D.Agent = function(device) {
 
     // pitch slider mode per channel
     var pitchMode = {
-        0: Modeswitch('absrate', pitchModeMap),
-        1: Modeswitch('absrate', pitchModeMap),
-        2: Modeswitch('absrate', pitchModeMap),
-        3: Modeswitch('absrate', pitchModeMap)
+        0: Modeswitch("absrate", pitchModeMap),
+        1: Modeswitch("absrate", pitchModeMap),
+        2: Modeswitch("absrate", pitchModeMap),
+        3: Modeswitch("absrate", pitchModeMap)
     };
 
     var pitchPatch = function(channel) {
-        var activePitchMode = pitchMode[deck];
-        activePitchMode.patch()(channel, mode[deck].held() === 'vinyl');
+        const activePitchMode = pitchMode[deck];
+        activePitchMode.patch()(channel, mode[deck].held() === "vinyl");
     };
 
+    /**
+     *
+     */
     function patchage() {
         tell(device.logo.on);
 
-        var channelno = deck + 1;
-        var channel = '[Channel' + channelno + ']';
+        const channelno = deck + 1;
+        const channel = "[Channel" + channelno + "]";
 
         tell(device.decklight[0](!(deck & 1)));
         tell(device.decklight[1](deck & 1));
 
-        for (var name in autocancel) {
+        for (const name in autocancel) {
             autocancel[name]();
         }
         autocancel = {};
-        if (resetHotcue) resetHotcue();
+        if (resetHotcue) { resetHotcue(); }
 
-        var activeMode = mode[deck];
+        const activeMode = mode[deck];
 
         // reset gain when EQ is held
-        var gainOp = activeMode.held() === 'eq' ? reset : budge;
-        expect(device.gain.slide.rel, gainOp(channel, 'pregain'));
-        watch(channel, 'pregain', Needle(device.gain.meter));
+        const gainOp = activeMode.held() === "eq" ? reset : budge;
+        expect(device.gain.slide.rel, gainOp(channel, "pregain"));
+        watch(channel, "pregain", Needle(device.gain.meter));
 
         tell(device.mode.fx.light.black);
         tell(device.mode.eq.light.black);
@@ -1718,19 +1906,19 @@ SCS3D.Agent = function(device) {
         tell(device.mode.vinyl.light.black);
         tell(device.mode.deck.light.black);
         tell(device.mode[activeMode.engaged()].light.red);
-        if (activeMode.held()) tell(device.mode[activeMode.held()].light.purple);
-        expect(device.mode.fx.touch, repatch(activeMode.hold('fx')));
-        expect(device.mode.fx.release, repatch(activeMode.release('fx')));
-        expect(device.mode.eq.touch, repatch(activeMode.hold('eq')));
-        expect(device.mode.eq.release, repatch(activeMode.release('eq')));
-        expect(device.mode.loop.touch, repatch(activeMode.hold('loop')));
-        expect(device.mode.loop.release, repatch(activeMode.release('loop')));
-        expect(device.mode.trig.touch, repatch(activeMode.hold('trig')));
-        expect(device.mode.trig.release, repatch(activeMode.release('trig')));
-        expect(device.mode.vinyl.touch, repatch(activeMode.hold('vinyl')));
-        expect(device.mode.vinyl.release, repatch(activeMode.release('vinyl')));
-        expect(device.mode.deck.touch, repatch(activeMode.hold('deck')));
-        expect(device.mode.deck.release, repatch(activeMode.release('deck')));
+        if (activeMode.held()) { tell(device.mode[activeMode.held()].light.purple); }
+        expect(device.mode.fx.touch, repatch(activeMode.hold("fx")));
+        expect(device.mode.fx.release, repatch(activeMode.release("fx")));
+        expect(device.mode.eq.touch, repatch(activeMode.hold("eq")));
+        expect(device.mode.eq.release, repatch(activeMode.release("eq")));
+        expect(device.mode.loop.touch, repatch(activeMode.hold("loop")));
+        expect(device.mode.loop.release, repatch(activeMode.release("loop")));
+        expect(device.mode.trig.touch, repatch(activeMode.hold("trig")));
+        expect(device.mode.trig.release, repatch(activeMode.release("trig")));
+        expect(device.mode.vinyl.touch, repatch(activeMode.hold("vinyl")));
+        expect(device.mode.vinyl.release, repatch(activeMode.release("vinyl")));
+        expect(device.mode.deck.touch, repatch(activeMode.hold("deck")));
+        expect(device.mode.deck.release, repatch(activeMode.release("deck")));
 
         // Reset circle lights
         Bar(device.slider.circle.meter)(0);
@@ -1741,24 +1929,24 @@ SCS3D.Agent = function(device) {
         // Call the patch function for the active mode
         activeMode.active()(channel, activeMode.held());
 
-        expect(device.button.play.touch, toggle(channel, 'play'));
-        watch(channel, 'play_indicator', binarylight(
+        expect(device.button.play.touch, toggle(channel, "play"));
+        watch(channel, "play_indicator", binarylight(
             device.button.play.light.black,
             device.button.play.light.red));
 
 
-        expect(device.button.cue.touch, setConst(channel, 'cue_default', true));
-        expect(device.button.cue.release, setConst(channel, 'cue_default', false));
-        watch(channel, 'cue_indicator', binarylight(
+        expect(device.button.cue.touch, setConst(channel, "cue_default", true));
+        expect(device.button.cue.release, setConst(channel, "cue_default", false));
+        watch(channel, "cue_indicator", binarylight(
             device.button.cue.light.black,
             device.button.cue.light.red));
 
         // Sync button, red when sync lock is on
-        watch(channel, 'sync_enabled', binarylight(
+        watch(channel, "sync_enabled", binarylight(
             device.button.sync.light.black,
             device.button.sync.light.red));
 
-        if (activeMode.held() === 'vinyl') {
+        if (activeMode.held() === "vinyl") {
             // When VINYL is held, SYNC adjusts the beatgrid
             // When the track is playing, the beatgrid is synced to the other
             // track (we assume the tracks were beatmatched and the other
@@ -1768,13 +1956,13 @@ SCS3D.Agent = function(device) {
             // We don't know which control we have to release until
             // the button is pressed, because the behaviour depends on
             // whether the track is playing or not
-            var affectedSyncControl;
+            let affectedSyncControl;
 
-            Autocancel('beatsync',
+            Autocancel("beatsync",
                 function(engage, cancelIfEngaged) {
                     expect(device.button.sync.release, cancelIfEngaged);
                     expect(device.button.sync.touch, function() {
-                        affectedSyncControl = engine.getValue(channel, 'play') ? 'beats_translate_match_alignment' : 'beats_translate_curpos';
+                        affectedSyncControl = engine.getValue(channel, "play") ? "beats_translate_match_alignment" : "beats_translate_curpos";
                         engine.setValue(channel, affectedSyncControl, true);
                         engage();
                     });
@@ -1786,15 +1974,15 @@ SCS3D.Agent = function(device) {
         } else {
             // Hold to toggle sync lock
             ExpectHeld(device.button.sync,
-                setConst(channel, 'beatsync', true),
-                toggle(channel, 'sync_enabled')
+                setConst(channel, "beatsync", true),
+                toggle(channel, "sync_enabled")
             );
         }
 
         expect(device.button.tap.touch, function() {
             taps(channel);
         });
-        watch(channel, 'beat_active', binarylight(device.button.tap.light.black, device.button.tap.light.red));
+        watch(channel, "beat_active", binarylight(device.button.tap.light.black, device.button.tap.light.red));
 
         spinLight(channel, 30);
 
@@ -1803,10 +1991,10 @@ SCS3D.Agent = function(device) {
         // 1. The control is not meant to transmit this information.
         // 2. A value > 1 is expected from a control which is just a toggle (suggesting a binary value)
         // This may fail at any future or past version of Mixxx and you have only me to blame for it.
-        watch('[PreviewDeck1]', 'quantize', repatch(gleanChannel));
+        watch("[PreviewDeck1]", "quantize", repatch(gleanChannel));
     }
 
-    var timer = false;
+    let timer = false;
 
     return {
         start: function() {
@@ -1816,7 +2004,7 @@ SCS3D.Agent = function(device) {
 
             // Initial setup
             patchage();
-            if (!timer) timer = engine.beginTimer(100, comm.tick);
+            if (!timer) { timer = engine.beginTimer(100, comm.tick); }
         },
         receive: comm.receive,
         stop: function() {
@@ -1826,7 +2014,7 @@ SCS3D.Agent = function(device) {
             comm.clear();
 
             // Send off-message to all light addresses
-            var i = 0;
+            let i = 0;
             for (; i < 0x80; i++) {
                 tell([0x90, i, 0]);
             }

@@ -67,17 +67,17 @@ MixtrackProFX.shifted = false;
 
 MixtrackProFX.init = function() {
     // disable demo lightshow
-    var exitDemoSysex = [0xF0, 0x7E, 0x00, 0x06, 0x01, 0xF7];
+    const exitDemoSysex = [0xF0, 0x7E, 0x00, 0x06, 0x01, 0xF7];
     midi.sendSysexMsg(exitDemoSysex, exitDemoSysex.length);
 
     // enables 4 bottom pads "fader cuts"
-    var faderCutSysex = [0xF0, 0x00, 0x20, 0x7F, 0x03, 0xF7];
+    const faderCutSysex = [0xF0, 0x00, 0x20, 0x7F, 0x03, 0xF7];
     midi.sendSysexMsg(faderCutSysex, faderCutSysex.length);
 
     // initialize component containers
     MixtrackProFX.deck = new components.ComponentContainer();
     MixtrackProFX.effect = new components.ComponentContainer();
-    var i;
+    let i;
     for (i = 0; i < 2; i++) {
         MixtrackProFX.deck[i] = new MixtrackProFX.Deck(i + 1);
         MixtrackProFX.effect[i] = new MixtrackProFX.EffectUnit(i + 1);
@@ -86,7 +86,7 @@ MixtrackProFX.init = function() {
     MixtrackProFX.browse = new MixtrackProFX.Browse();
     MixtrackProFX.gains = new MixtrackProFX.Gains();
 
-    var statusSysex = [0xF0, 0x00, 0x20, 0x7F, 0x03, 0x01, 0xF7];
+    const statusSysex = [0xF0, 0x00, 0x20, 0x7F, 0x03, 0x01, 0xF7];
     midi.sendSysexMsg(statusSysex, statusSysex.length);
 
     engine.makeUnbufferedConnection("[Channel1]", "VuMeter", MixtrackProFX.vuCallback);
@@ -102,7 +102,7 @@ MixtrackProFX.init = function() {
 };
 
 MixtrackProFX.shutdown = function() {
-    var shutdownSysex = [0xF0, 0x00, 0x20, 0x7F, 0x02, 0xF7];
+    const shutdownSysex = [0xF0, 0x00, 0x20, 0x7F, 0x02, 0xF7];
     midi.sendSysexMsg(shutdownSysex, shutdownSysex.length);
 };
 
@@ -200,8 +200,8 @@ MixtrackProFX.EffectUnit.prototype = new components.ComponentContainer();
 MixtrackProFX.Deck = function(number) {
     components.Deck.call(this, number);
 
-    var channel = number - 1;
-    var deck = this;
+    const channel = number - 1;
+    const deck = this;
     this.scratchModeEnabled = true;
 
     this.playButton = new components.PlayButton({
@@ -442,8 +442,8 @@ MixtrackProFX.PadSection = function(deckNumber) {
     this.blinkLedState = true;
 
     // initialize leds
-    var ledOff = components.Button.prototype.off;
-    var ledOn = components.Button.prototype.on;
+    const ledOff = components.Button.prototype.off;
+    const ledOn = components.Button.prototype.on;
     midi.sendShortMsg(0x93 + deckNumber, 0x00, ledOn); // hotcue
     midi.sendShortMsg(0x93 + deckNumber, 0x0D, ledOff); // auto loop
     midi.sendShortMsg(0x93 + deckNumber, 0x07, ledOff); // "fader cuts"
@@ -473,12 +473,12 @@ MixtrackProFX.PadSection = function(deckNumber) {
             // don't activate pads when in "fader cuts" mode - handled by hardware of firmware
             return;
         }
-        var i = (control - 0x14) % 8;
+        const i = (control - 0x14) % 8;
         this.currentMode.pads[i].input(channel, control, value, status, group);
     };
 
     this.setMode = function(channel, control) {
-        var newMode = this.modes[control];
+        const newMode = this.modes[control];
         if (this.currentMode.control === newMode.control) {
             return; // selected mode already set, no need to change anything
         }
@@ -553,7 +553,7 @@ MixtrackProFX.PadSection = function(deckNumber) {
     };
 
     this.disablePadLights = function() {
-        for (var i = 0; i < 16; i++) { // 0-7 = unshifted; 8-15 = shifted
+        for (let i = 0; i < 16; i++) { // 0-7 = unshifted; 8-15 = shifted
             midi.sendShortMsg(0x93 + deckNumber, 0x14 + i, 0x01);
         }
     };
@@ -570,7 +570,7 @@ MixtrackProFX.ModeHotcue = function(deckNumber) {
     this.lightOnValue = 0x7F;
 
     this.pads = new components.ComponentContainer();
-    for (var i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i++) {
         this.pads[i] = new components.HotcueButton({
             group: "[Channel" + deckNumber + "]",
             midi: [0x93 + deckNumber, 0x14 + i],
@@ -592,7 +592,7 @@ MixtrackProFX.ModeAutoLoop = function(deckNumber) {
     this.lightOnValue = 0x7F;
 
     this.pads = new components.ComponentContainer();
-    for (var i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i++) {
         this.pads[i] = new components.Button({
             group: "[Channel" + deckNumber + "]",
             midi: [0x93 + deckNumber, 0x14 + i],
@@ -646,7 +646,7 @@ MixtrackProFX.ModeSample = function(deckNumber, secondaryMode) {
     this.lightOnValue = 0x7F;
 
     this.pads = new components.ComponentContainer();
-    for (var i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i++) {
         this.pads[i] = new components.SamplerButton({
             midi: [0x93 + deckNumber, 0x14 + i],
             number: this.firstSampleNumber + i,
@@ -668,7 +668,7 @@ MixtrackProFX.ModeBeatjump = function(deckNumber) {
     this.lightOnValue = 0x7F;
 
     this.pads = new components.ComponentContainer();
-    for (var i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i++) {
         this.pads[i] = new components.Button({
             group: "[Channel" + deckNumber + "]",
             midi: [0x93 + deckNumber, 0x14 + i],
@@ -701,7 +701,7 @@ MixtrackProFX.Browse = function() {
         shiftControl: true,
         shiftOffset: 0x01,
         input: function(channel, control, value) {
-            var direction;
+            let direction;
             if (!MixtrackProFX.shifted) {
                 direction = (value > 0x40) ? value - 0x80 : value;
                 engine.setParameter("[Library]", "MoveVertical", direction);
@@ -752,13 +752,13 @@ MixtrackProFX.Gains = function() {
 MixtrackProFX.Gains.prototype = new components.ComponentContainer();
 
 MixtrackProFX.vuCallback = function(value, group) {
-    var level = value * 90;
-    var deckOffset = script.deckFromGroup(group) - 1;
+    const level = value * 90;
+    const deckOffset = script.deckFromGroup(group) - 1;
     midi.sendShortMsg(0xB0 + deckOffset, 0x1F, level);
 };
 
 MixtrackProFX.wheelTouch = function(channel, control, value) {
-    var deckNumber = channel + 1;
+    const deckNumber = channel + 1;
 
     if (!MixtrackProFX.shifted && MixtrackProFX.deck[channel].scratchModeEnabled && value === 0x7F) {
         // touch start
@@ -771,9 +771,9 @@ MixtrackProFX.wheelTouch = function(channel, control, value) {
 };
 
 MixtrackProFX.wheelTurn = function(channel, control, value, status, group) {
-    var deckNumber = channel + 1;
+    const deckNumber = channel + 1;
 
-    var newValue = value;
+    let newValue = value;
 
     if (value >= 64) {
         // correct the value if going backwards
@@ -782,7 +782,7 @@ MixtrackProFX.wheelTurn = function(channel, control, value, status, group) {
 
     if (MixtrackProFX.shifted) {
         // seek
-        var oldPos = engine.getValue(group, "playposition");
+        const oldPos = engine.getValue(group, "playposition");
 
         engine.setValue(group, "playposition", oldPos + newValue / MixtrackProFX.jogSeekSensitivity);
     } else if (MixtrackProFX.deck[channel].scratchModeEnabled && engine.isScratching(deckNumber)) {

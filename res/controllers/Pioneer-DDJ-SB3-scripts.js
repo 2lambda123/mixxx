@@ -64,7 +64,7 @@ PioneerDDJSB3.PadMode = {
 //               INIT, SHUTDOWN & GLOBAL HELPER              //
 ///////////////////////////////////////////////////////////////
 PioneerDDJSB3.trackLoaded = function(value, group) {
-    var deckIndex = PioneerDDJSB3.channelGroups[group];
+    const deckIndex = PioneerDDJSB3.channelGroups[group];
 
     if (value) {
         midi.sendShortMsg(0x96, 0x46 + deckIndex, 0x7F);
@@ -93,14 +93,14 @@ PioneerDDJSB3.updateBPM = function(bpm, group) {
         return;
     }
 
-    var bpmValue = Math.round(bpm * 100);
-    var bpmBits = bpmValue.toString(2);
+    const bpmValue = Math.round(bpm * 100);
+    const bpmBits = bpmValue.toString(2);
 
-    var bpmBitsPadded = [];
+    const bpmBitsPadded = [];
 
-    var offset = 16 - bpmBits.length;
+    const offset = 16 - bpmBits.length;
 
-    var i;
+    let i;
 
     for (i = 0; i < 16; i++) {
         if (i < offset) {
@@ -110,24 +110,24 @@ PioneerDDJSB3.updateBPM = function(bpm, group) {
         }
     }
 
-    var bytes = [];
+    const bytes = [];
 
     for (i = 0; i < 4; i++) {
-        var mbyte = 0;
+        let mbyte = 0;
 
-        for (var j = 0; j < 4; j++) {
-            var bitIndex = (i * 4) + j;
-            var bit = parseInt(bpmBitsPadded[bitIndex]);
+        for (let j = 0; j < 4; j++) {
+            const bitIndex = (i * 4) + j;
+            const bit = parseInt(bpmBitsPadded[bitIndex]);
             mbyte = mbyte | (bit << (3 - j));
         }
 
         bytes[i] = mbyte;
     }
 
-    var deckIndex = PioneerDDJSB3.channelGroups[group];
-    var deckByte = 0x11 + deckIndex;
+    const deckIndex = PioneerDDJSB3.channelGroups[group];
+    const deckByte = 0x11 + deckIndex;
 
-    var sysexMessage = [0xF0, 0x00, 0x20, 0x7F, deckByte, 0x00, 0x00, bytes[0], bytes[1], bytes[2], bytes[3], 0xF7];
+    const sysexMessage = [0xF0, 0x00, 0x20, 0x7F, deckByte, 0x00, 0x00, bytes[0], bytes[1], bytes[2], bytes[3], 0xF7];
     midi.sendSysexMsg(sysexMessage, sysexMessage.length);
 };
 
@@ -138,12 +138,12 @@ PioneerDDJSB3.flasher = {};
 PioneerDDJSB3.flasher.functions = [];
 
 PioneerDDJSB3.flasher.init = function() {
-    var flag = true;
+    let flag = true;
 
     PioneerDDJSB3.flasher.timer = engine.beginTimer(500, function() {
         flag = !flag;
 
-        for (var i = 0; i < PioneerDDJSB3.flasher.functions.length; i++) {
+        for (let i = 0; i < PioneerDDJSB3.flasher.functions.length; i++) {
             PioneerDDJSB3.flasher.functions[i](flag);
         }
     });
@@ -231,7 +231,7 @@ PioneerDDJSB3.channelsToEffectUnitNumber = {
 };
 
 PioneerDDJSB3.init = function() {
-    var initSysBytes = [0xF0, 0x00, 0x20, 0x7F, 0x03, 0x01, 0xF7];
+    const initSysBytes = [0xF0, 0x00, 0x20, 0x7F, 0x03, 0x01, 0xF7];
     midi.sendSysexMsg(initSysBytes, initSysBytes.length);
 
     PioneerDDJSB3.shiftPressed = false;
@@ -290,11 +290,11 @@ PioneerDDJSB3.init = function() {
 PioneerDDJSB3.shiftListeners = [];
 
 PioneerDDJSB3.Deck = function(deckNumber) {
-    var theDeck = this;
+    const theDeck = this;
     this.group = "[Channel" + deckNumber + "]";
 
     this.shiftButton = function(channel, control, value, status, group) {
-        var i;
+        let i;
         if (value > 0) {
             theDeck.shift();
             PioneerDDJSB3.shiftPressed = true;
@@ -332,7 +332,7 @@ PioneerDDJSB3.Deck = function(deckNumber) {
         sendShifted: true,
     });
 
-    var effectUnitNumber = deckNumber;
+    let effectUnitNumber = deckNumber;
     if (deckNumber > 2) {
         effectUnitNumber -= 2;
     }
@@ -348,7 +348,7 @@ PioneerDDJSB3.Deck = function(deckNumber) {
     });
 
     this.eqKnob = [];
-    for (var k = 1; k <= 3; k++) {
+    for (let k = 1; k <= 3; k++) {
         this.eqKnob[k] = new components.Pot({
             number: k,
             unshift: function() {
@@ -368,7 +368,7 @@ PioneerDDJSB3.Deck = function(deckNumber) {
             this.connect();
         },
         shift: function() {
-            var focusedEffect = engine.getValue("[EffectRack1_EffectUnit" + effectUnitNumber + "]", "focused_effect");
+            const focusedEffect = engine.getValue("[EffectRack1_EffectUnit" + effectUnitNumber + "]", "focused_effect");
             this.group = "[EffectRack1_EffectUnit" + effectUnitNumber + "_Effect" + focusedEffect + "]";
             this.inKey = "parameter5";
             this.disconnect();
@@ -398,13 +398,13 @@ PioneerDDJSB3.Deck = function(deckNumber) {
 PioneerDDJSB3.Deck.prototype = components.ComponentContainer.prototype;
 
 PioneerDDJSB3.Pad = function(padNumber) {
-    var _this = this;
+    const _this = this;
 
     this.padNumber = padNumber;
 
     this.slicerButtons = [];
 
-    for (var i = 1; i <= PioneerDDJSB3.midiOutputBeatLedsCount; i++) {
+    for (let i = 1; i <= PioneerDDJSB3.midiOutputBeatLedsCount; i++) {
         (function(beat) {
             _this.slicerButtons[beat] = function(channel, control, value, status) {
                 if (_this.slicer) {
@@ -418,7 +418,7 @@ PioneerDDJSB3.Pad = function(padNumber) {
     PioneerDDJSB3.shiftListeners.push(function(group, isShifted) {
         if (PioneerDDJSB3.channelsToPadNumber[group] === padNumber) {
             if (isShifted) {
-                for (var i = 0; i < 8; i++) {
+                for (let i = 0; i < 8; i++) {
                     midi.sendShortMsg(0x97 + padNumber - 1, 0x40 + i, 0x7F);
                 }
             } else {
@@ -497,8 +497,8 @@ PioneerDDJSB3.Pad.prototype.slicerMode = function(channel, control, value) {
         this.setModeActive(PioneerDDJSB3.PadMode.Slicer);
 
         if (!this.slicer) {
-            var group = "[Channel" + this.padNumber + "]";
-            var midiOutputOp = 0x97 + this.padNumber - 1;
+            const group = "[Channel" + this.padNumber + "]";
+            const midiOutputOp = 0x97 + this.padNumber - 1;
 
             this.slicer = new PioneerDDJSB3.Slicer(group, midiOutputOp);
         }
@@ -521,23 +521,23 @@ PioneerDDJSB3.Pad.prototype.transMode = function(channel, control, value) {
 
 PioneerDDJSB3.Pad.prototype.beatJumpMultiply = function(channel, control, value, status, group) {
     if (value) {
-        var size = engine.getValue(group, "beatjump_size");
+        const size = engine.getValue(group, "beatjump_size");
         engine.setValue(group, "beatjump_size", size * 2.0);
     }
 };
 
 PioneerDDJSB3.Pad.prototype.beatJumpDivide = function(channel, control, value, status, group) {
     if (value) {
-        var size = engine.getValue(group, "beatjump_size");
+        const size = engine.getValue(group, "beatjump_size");
         engine.setValue(group, "beatjump_size", size / 2.0);
     }
 };
 
 PioneerDDJSB3.shutdown = function() {
     // turn off button LEDs
-    var skip = [0x72, 0x1B, 0x69, 0x1E, 0x6B, 0x20, 0x6D, 0x22, 0x6F, 0x70, 0x75];
+    const skip = [0x72, 0x1B, 0x69, 0x1E, 0x6B, 0x20, 0x6D, 0x22, 0x6F, 0x70, 0x75];
     for (var channel = 0; channel <= 10; channel++) {
-        for (var control = 0; control <= 127; control++) {
+        for (let control = 0; control <= 127; control++) {
             // skip deck toggle buttons and pad mode buttons
             if (skip.indexOf(control) > -1) {
                 continue;
@@ -644,7 +644,7 @@ PioneerDDJSB3.bindSamplerControlConnections = function(samplerGroup) {
 };
 
 PioneerDDJSB3.bindDeckControlConnections = function(channelGroup, isUnbinding) {
-    var i,
+    let i,
         index,
         controlsToFunctions = {
             "pfl": PioneerDDJSB3.headphoneCueLed,
@@ -666,7 +666,7 @@ PioneerDDJSB3.bindDeckControlConnections = function(channelGroup, isUnbinding) {
 };
 
 PioneerDDJSB3.bindNonDeckControlConnections = function(isUnbinding) {
-    var samplerIndex;
+    let samplerIndex;
 
     for (samplerIndex = 1; samplerIndex <= 8; samplerIndex++) {
         PioneerDDJSB3.bindSamplerControlConnections("[Sampler" + samplerIndex + "]", isUnbinding);
@@ -725,7 +725,7 @@ PioneerDDJSB3.deckFaderMSB = function(channel, control, value, status, group) {
 };
 
 PioneerDDJSB3.deckFaderLSB = function(channel, control, value, status, group) {
-    var fullValue = (PioneerDDJSB3.highResMSB[group].deckFader << 7) + value;
+    const fullValue = (PioneerDDJSB3.highResMSB[group].deckFader << 7) + value;
 
     if (PioneerDDJSB3.shiftPressed &&
         engine.getValue(group, "volume") === 0 &&
@@ -753,7 +753,7 @@ PioneerDDJSB3.deckFaderLSB = function(channel, control, value, status, group) {
 ///////////////////////////////////////////////////////////////
 
 PioneerDDJSB3.beatloopRollButtons = function(channel, control, value, status, group) {
-    var index = control - 0x50;
+    const index = control - 0x50;
     engine.setValue(
         PioneerDDJSB3.deckSwitchTable[group],
         "beatlooproll_" + PioneerDDJSB3.looprollIntervals[index] + "_activate",
@@ -779,8 +779,8 @@ PioneerDDJSB3.keyLockButton = function(channel, control, value, status, group) {
 
 PioneerDDJSB3.shiftKeyLockButton = function(channel, control, value, status, group) {
     if (value) {
-        var currentTempoRange = engine.getValue(group, "rateRange");
-        var deckIndex = status - 0x90 + 1;
+        const currentTempoRange = engine.getValue(group, "rateRange");
+        const deckIndex = status - 0x90 + 1;
 
         PioneerDDJSB3.deck[deckIndex].tempoFader.skipSoftTakeover();
 
@@ -799,7 +799,7 @@ PioneerDDJSB3.shiftKeyLockButton = function(channel, control, value, status, gro
 PioneerDDJSB3.deck1Button = function(channel, control, value, status, group) {
     if (value) {
         PioneerDDJSB3.deck3Enabled = false;
-        var bpm = engine.getValue(group, "bpm");
+        const bpm = engine.getValue(group, "bpm");
         PioneerDDJSB3.updateBPM(bpm, group);
         midi.sendShortMsg(0xB0, 0x02, 0x0);
     }
@@ -808,7 +808,7 @@ PioneerDDJSB3.deck1Button = function(channel, control, value, status, group) {
 PioneerDDJSB3.deck2Button = function(channel, control, value, status, group) {
     if (value) {
         PioneerDDJSB3.deck4Enabled = false;
-        var bpm = engine.getValue(group, "bpm");
+        const bpm = engine.getValue(group, "bpm");
         PioneerDDJSB3.updateBPM(bpm, group);
         midi.sendShortMsg(0xB1, 0x02, 0x0);
     }
@@ -818,7 +818,7 @@ PioneerDDJSB3.deck3Button = function(channel, control, value, status, group) {
     if (value) {
         PioneerDDJSB3.deck3Enabled = true;
         midi.sendShortMsg(0xB2, 0x02, 0x0);
-        var bpm = engine.getValue(group, "bpm");
+        const bpm = engine.getValue(group, "bpm");
         PioneerDDJSB3.updateBPM(bpm, group);
     }
 };
@@ -826,7 +826,7 @@ PioneerDDJSB3.deck3Button = function(channel, control, value, status, group) {
 PioneerDDJSB3.deck4Button = function(channel, control, value, status, group) {
     if (value) {
         PioneerDDJSB3.deck4Enabled = true;
-        var bpm = engine.getValue(group, "bpm");
+        const bpm = engine.getValue(group, "bpm");
         PioneerDDJSB3.updateBPM(bpm, group);
         midi.sendShortMsg(0xB3, 0x02, 0x0);
     }
@@ -882,10 +882,10 @@ PioneerDDJSB3.headphoneShiftCueButton = function(channel, control, value, status
 };
 
 PioneerDDJSB3.headphoneMasterUpdate = function() {
-    var anyDeckCue = false;
-    var masterCue = PioneerDDJSB3.headphoneCueMaster;
+    let anyDeckCue = false;
+    const masterCue = PioneerDDJSB3.headphoneCueMaster;
 
-    for (var i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 4; i++) {
         if (engine.getValue("[Channel" + i + "]", "pfl")) {
             anyDeckCue = true;
         }
@@ -912,7 +912,7 @@ PioneerDDJSB3.headphoneMasterUpdate = function() {
 ///////////////////////////////////////////////////////////////
 
 PioneerDDJSB3.deckConverter = function(group) {
-    var index;
+    let index;
 
     if (typeof group === "string") {
         for (index in PioneerDDJSB3.deckSwitchTable) {
@@ -926,14 +926,14 @@ PioneerDDJSB3.deckConverter = function(group) {
 };
 
 PioneerDDJSB3.padLedControl = function(deck, groupNumber, shiftGroup, ledNumber, shift, active) {
-    var midiChannelOffset = PioneerDDJSB3.deckConverter(deck);
+    const midiChannelOffset = PioneerDDJSB3.deckConverter(deck);
 
     if (midiChannelOffset === null || midiChannelOffset === undefined) {
         return;
     }
 
-    var padLedsBaseChannel = 0x97;
-    var padLedControl = (shiftGroup ? 0x40 : 0x00) + (shift ? 0x08 : 0x00) + groupNumber + ledNumber;
+    const padLedsBaseChannel = 0x97;
+    const padLedControl = (shiftGroup ? 0x40 : 0x00) + (shift ? 0x08 : 0x00) + groupNumber + ledNumber;
 
     midi.sendShortMsg(
         padLedsBaseChannel + midiChannelOffset,
@@ -946,7 +946,7 @@ PioneerDDJSB3.flashingPadLedControl = [];
 
 PioneerDDJSB3.initFlashingPadLedControl = function() {
     PioneerDDJSB3.flasher.addFunction(function(flag) {
-        for (var i = 0; i < PioneerDDJSB3.flashingPadLedControl.length; i++) {
+        for (let i = 0; i < PioneerDDJSB3.flashingPadLedControl.length; i++) {
             PioneerDDJSB3.padLedControl(
                 PioneerDDJSB3.flashingPadLedControl[i].deck,
                 PioneerDDJSB3.flashingPadLedControl[i].groupNumber,
@@ -970,7 +970,7 @@ PioneerDDJSB3.startFlashingPadLedControl = function(deck, groupNumber, shiftGrou
 };
 
 PioneerDDJSB3.stopFlashingPadLedControl = function(deck, groupNumber, shiftGroup, ledNumber, shift) {
-    var target = {
+    const target = {
         deck: deck,
         groupNumber: groupNumber,
         shiftGroup: shiftGroup,
@@ -982,13 +982,13 @@ PioneerDDJSB3.stopFlashingPadLedControl = function(deck, groupNumber, shiftGroup
 };
 
 PioneerDDJSB3.nonPadLedControl = function(deck, ledNumber, active) {
-    var midiChannelOffset = PioneerDDJSB3.deckConverter(deck);
+    const midiChannelOffset = PioneerDDJSB3.deckConverter(deck);
 
     if (midiChannelOffset === null || midiChannelOffset === undefined) {
         return;
     }
 
-    var nonPadLedsBaseChannel = 0x90;
+    const nonPadLedsBaseChannel = 0x90;
 
     midi.sendShortMsg(
         nonPadLedsBaseChannel + midiChannelOffset,
@@ -1025,7 +1025,7 @@ PioneerDDJSB3.autoLoopLed = function(value, group) {
 };
 
 PioneerDDJSB3.samplerLedsDuration = function(value, group) {
-    var sampler = PioneerDDJSB3.samplerGroups[group];
+    const sampler = PioneerDDJSB3.samplerGroups[group];
 
     sampler.loaded = value;
 
@@ -1033,7 +1033,7 @@ PioneerDDJSB3.samplerLedsDuration = function(value, group) {
 };
 
 PioneerDDJSB3.samplerLedsPlay = function(value, group) {
-    var sampler = PioneerDDJSB3.samplerGroups[group];
+    const sampler = PioneerDDJSB3.samplerGroups[group];
 
     sampler.playing = value;
 
@@ -1041,7 +1041,7 @@ PioneerDDJSB3.samplerLedsPlay = function(value, group) {
 };
 
 PioneerDDJSB3.samplerLeds = function(sampler) {
-    for (var i = 0; i < sampler.channels.length; i++) {
+    for (let i = 0; i < sampler.channels.length; i++) {
 
         if (sampler.playing) {
             PioneerDDJSB3.startFlashingPadLedControl(sampler.channels[i], PioneerDDJSB3.ledGroups.sampler, false, sampler.ledNumber, false);
@@ -1053,7 +1053,7 @@ PioneerDDJSB3.samplerLeds = function(sampler) {
 };
 
 PioneerDDJSB3.beatlooprollLeds = function(value, group, control) {
-    var index,
+    let index,
         padNum,
         shifted;
 
@@ -1074,7 +1074,7 @@ PioneerDDJSB3.hotCueLedStates = {
 };
 
 PioneerDDJSB3.hotCueLeds = function(value, group, control) {
-    var shiftedGroup = false,
+    let shiftedGroup = false,
         padNum = null,
         hotCueNum;
 
@@ -1102,7 +1102,7 @@ PioneerDDJSB3.VuMeterLeds = function(value, group, control) {
     }
 
     if (!(PioneerDDJSB3.twinkleVumeterAutodjOn && engine.getValue("[AutoDJ]", "enabled"))) {
-        var midiChannel;
+        let midiChannel;
         if (PioneerDDJSB3.showVumeterMaster) {
             if (control === "VuMeterL") {
                 midiChannel = 0;
@@ -1130,8 +1130,8 @@ PioneerDDJSB3.VuMeterLeds = function(value, group, control) {
             PioneerDDJSB3.valueVuMeter[group + "_current"] = value;
         }
 
-        for (var channel = 0; channel < 4; channel++) {
-            var midiOut = PioneerDDJSB3.valueVuMeter["[Channel" + (channel + 1) + "]_current"];
+        for (let channel = 0; channel < 4; channel++) {
+            let midiOut = PioneerDDJSB3.valueVuMeter["[Channel" + (channel + 1) + "]_current"];
             if (PioneerDDJSB3.valueVuMeter["[Channel" + (channel + 1) + "]_enabled"]) {
                 midiOut = 0;
             }
@@ -1170,7 +1170,7 @@ PioneerDDJSB3.jogRingTickShift = function(channel, control, value, status, group
 };
 
 PioneerDDJSB3.jogPlatterTick = function(channel, control, value, status, group) {
-    var deck = PioneerDDJSB3.channelGroups[PioneerDDJSB3.deckSwitchTable[group]];
+    const deck = PioneerDDJSB3.channelGroups[PioneerDDJSB3.deckSwitchTable[group]];
     if (PioneerDDJSB3.scratchMode[deck]) {
         engine.scratchTick(deck + 1, PioneerDDJSB3.getJogWheelDelta(value));
     } else {
@@ -1179,7 +1179,7 @@ PioneerDDJSB3.jogPlatterTick = function(channel, control, value, status, group) 
 };
 
 PioneerDDJSB3.jogPlatterTickShift = function(channel, control, value, status, group) {
-    var deck = PioneerDDJSB3.channelGroups[PioneerDDJSB3.deckSwitchTable[group]];
+    const deck = PioneerDDJSB3.channelGroups[PioneerDDJSB3.deckSwitchTable[group]];
     if (PioneerDDJSB3.scratchMode[deck]) {
         engine.scratchTick(deck + 1, PioneerDDJSB3.getJogWheelDelta(value));
     } else {
@@ -1191,7 +1191,7 @@ PioneerDDJSB3.jogPlatterTickShift = function(channel, control, value, status, gr
 };
 
 PioneerDDJSB3.jogTouch = function(channel, control, value, status, group) {
-    var deck = PioneerDDJSB3.channelGroups[PioneerDDJSB3.deckSwitchTable[group]];
+    const deck = PioneerDDJSB3.channelGroups[PioneerDDJSB3.deckSwitchTable[group]];
 
     if (PioneerDDJSB3.scratchMode[deck]) {
         if (value) {
@@ -1218,7 +1218,7 @@ PioneerDDJSB3.jogTouch = function(channel, control, value, status, group) {
 };
 
 PioneerDDJSB3.toggleScratch = function(channel, control, value, status, group) {
-    var deck = PioneerDDJSB3.channelGroups[group];
+    const deck = PioneerDDJSB3.channelGroups[group];
     if (value) {
         PioneerDDJSB3.scratchMode[deck] = !PioneerDDJSB3.scratchMode[deck];
 
@@ -1231,7 +1231,7 @@ PioneerDDJSB3.toggleScratch = function(channel, control, value, status, group) {
 };
 
 PioneerDDJSB3.pitchBendFromJog = function(channel, movement) {
-    var group = (typeof channel === "string" ? channel : "[Channel" + channel + 1 + "]");
+    const group = (typeof channel === "string" ? channel : "[Channel" + channel + 1 + "]");
 
     engine.setValue(group, "jog", movement / 5 * PioneerDDJSB3.jogwheelSensitivity);
 };
@@ -1244,7 +1244,7 @@ PioneerDDJSB3.pitchBendFromJog = function(channel, movement) {
 PioneerDDJSB3.rotarySelectorChanged = false; // new for DDJ-SB2
 
 PioneerDDJSB3.getRotaryDelta = function(value) {
-    var delta = 0x40 - Math.abs(0x40 - value),
+    let delta = 0x40 - Math.abs(0x40 - value),
         isCounterClockwise = value > 0x40;
 
     if (isCounterClockwise) {
@@ -1254,14 +1254,14 @@ PioneerDDJSB3.getRotaryDelta = function(value) {
 };
 
 PioneerDDJSB3.rotarySelector = function(channel, control, value) {
-    var delta = PioneerDDJSB3.getRotaryDelta(value);
+    const delta = PioneerDDJSB3.getRotaryDelta(value);
     engine.setValue("[Playlist]", "SelectTrackKnob", delta);
 
     PioneerDDJSB3.rotarySelectorChanged = true;
 };
 
 PioneerDDJSB3.shiftedRotarySelector = function(channel, control, value) {
-    var delta = PioneerDDJSB3.getRotaryDelta(value),
+    const delta = PioneerDDJSB3.getRotaryDelta(value),
         f = (delta > 0 ? "SelectNextPlaylist" : "SelectPrevPlaylist");
 
     engine.setValue("[Playlist]", f, Math.abs(delta));
@@ -1298,7 +1298,7 @@ PioneerDDJSB3.rotarySelectorShiftedClick = function(channel, control, value) {
 ///////////////////////////////////////////////////////////////
 
 PioneerDDJSB3.EffectUnit = function(unitNumber) {
-    var eu = this;
+    const eu = this;
     this.isShifted = false;
     this.group = "[EffectRack1_EffectUnit" + unitNumber + "]";
     engine.setValue(this.group, "show_focus", 1);
@@ -1321,7 +1321,7 @@ PioneerDDJSB3.EffectUnit = function(unitNumber) {
         }
     };
 
-    var i;
+    let i;
 
     for (i = 1; i <= 3; i++) {
         this.buttonLights[i] = new this.EffectButtonLight(i);
@@ -1338,7 +1338,7 @@ PioneerDDJSB3.EffectUnit = function(unitNumber) {
     this.EffectFocusButton.prototype = new components.Button({
         input: function(channel, control, value) {
             if (value) {
-                var focusedEffect = engine.getValue(eu.group, "focused_effect");
+                const focusedEffect = engine.getValue(eu.group, "focused_effect");
 
                 if (focusedEffect === this.buttonNumber) {
                     engine.setValue(eu.group, "focused_effect", 0);
@@ -1367,7 +1367,7 @@ PioneerDDJSB3.EffectUnit = function(unitNumber) {
     this.EffectEnableButton.prototype = new components.Button({
         input: function(channel, control, value) {
             if (value) {
-                var effectEnabled = engine.getValue(this.group, "enabled");
+                const effectEnabled = engine.getValue(this.group, "enabled");
 
                 if (effectEnabled) {
                     engine.setValue(this.group, "enabled", false);
@@ -1391,7 +1391,7 @@ PioneerDDJSB3.EffectUnit = function(unitNumber) {
         this.button[i] = new this.EffectEnableButton(i);
         this.button[i + 3] = new this.EffectFocusButton(i);
 
-        var effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + i + "]";
+        const effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + i + "]";
         engine.softTakeover(effectGroup, "meta", true);
         engine.softTakeover(eu.group, "mix", true);
     }
@@ -1401,11 +1401,11 @@ PioneerDDJSB3.EffectUnit = function(unitNumber) {
             this.input = function(channel, control, value) {
                 value = (this.MSB << 7) + value;
 
-                var focusedEffect = engine.getValue(eu.group, "focused_effect");
+                const focusedEffect = engine.getValue(eu.group, "focused_effect");
                 if (focusedEffect === 0) {
                     engine.setParameter(eu.group, "mix", value / this.max);
                 } else {
-                    var effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + focusedEffect + "]";
+                    const effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + focusedEffect + "]";
                     engine.setParameter(effectGroup, "meta", value / this.max);
                 }
             };
@@ -1416,7 +1416,7 @@ PioneerDDJSB3.EffectUnit = function(unitNumber) {
         if (value === 0) {
             engine.softTakeoverIgnoreNextValue(eu.group, "mix");
         } else {
-            var effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + value + "]";
+            const effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + value + "]";
             engine.softTakeoverIgnoreNextValue(effectGroup, "meta");
         }
     });
@@ -1430,7 +1430,7 @@ PioneerDDJSB3.EffectUnit = function(unitNumber) {
 
 PioneerDDJSB3.EffectUnit.prototype.setShift = function(value) {
     this.isShifted = value;
-    for (var i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 3; i++) {
         this.buttonLights[i].update();
     }
 };
@@ -1440,7 +1440,7 @@ PioneerDDJSB3.EffectUnit.prototype.setShift = function(value) {
 ///////////////////////////////////////////////////////////////
 
 PioneerDDJSB3.Slicer = function(group, midiOutputOp) {
-    var _this = this;
+    const _this = this;
 
     this.group = group;
 
@@ -1456,11 +1456,11 @@ PioneerDDJSB3.Slicer = function(group, midiOutputOp) {
 
     this.buttons = [];
 
-    for (var i = 1; i <= PioneerDDJSB3.midiOutputBeatLedsCount; i++) {
+    for (let i = 1; i <= PioneerDDJSB3.midiOutputBeatLedsCount; i++) {
         (function(beat) {
             _this.buttons[beat] = function(channel, control, value) {
                 if (value) {
-                    var beatPosition = _this.beatPositions[beat - 1];
+                    const beatPosition = _this.beatPositions[beat - 1];
 
                     if (beatPosition) {
                         _this.moveToSample(beatPosition.sample);
@@ -1497,10 +1497,10 @@ PioneerDDJSB3.Slicer.prototype.PLAY_POSITION_FLOOR = 0;
 PioneerDDJSB3.Slicer.prototype.PLAY_POSITION_RANGE = 1 - PioneerDDJSB3.Slicer.prototype.PLAY_POSITION_FLOOR;
 
 PioneerDDJSB3.Slicer.prototype.shutdown = function() {
-    var i;
+    let i;
 
     for (i = 0; i < PioneerDDJSB3.midiOutputBeatLedsCount.length; i++) {
-        var ledMidi = PioneerDDJSB3.midiOutputBeatLedsStart + i;
+        const ledMidi = PioneerDDJSB3.midiOutputBeatLedsStart + i;
 
         if (ledMidi) {
             midi.sendShortMsg(this.midiOutputOp, ledMidi, 0x0);
@@ -1513,11 +1513,11 @@ PioneerDDJSB3.Slicer.prototype.shutdown = function() {
 };
 
 PioneerDDJSB3.Slicer.prototype.calculateBeats = function() {
-    var trackSamplesPerSecond = engine.getValue(this.group, "track_samplerate");
+    const trackSamplesPerSecond = engine.getValue(this.group, "track_samplerate");
     this.trackSamples = engine.getValue(this.group, "track_samples");
 
-    var bpm = engine.getValue(this.group, "bpm");
-    var bps = bpm / 60.0;
+    const bpm = engine.getValue(this.group, "bpm");
+    const bps = bpm / 60.0;
 
     this.samplesPerBeat = (trackSamplesPerSecond * 2) / bps;
     this.positionPerBeat = (this.PLAY_POSITION_RANGE * this.samplesPerBeat) / this.trackSamples;
@@ -1527,12 +1527,12 @@ PioneerDDJSB3.Slicer.prototype.calculateBeats = function() {
 PioneerDDJSB3.Slicer.prototype.generateBeatPositions = function() {
     this.beatPositions = [];
 
-    for (var i = 0; i < PioneerDDJSB3.midiOutputBeatLedsCount; i++) {
-        var sample = this.firstBeatSample + (i * this.samplesPerBeat);
-        var nextSample = this.firstBeatSample + ((i + 1) * this.samplesPerBeat);
+    for (let i = 0; i < PioneerDDJSB3.midiOutputBeatLedsCount; i++) {
+        const sample = this.firstBeatSample + (i * this.samplesPerBeat);
+        const nextSample = this.firstBeatSample + ((i + 1) * this.samplesPerBeat);
 
         if (sample < this.trackSamples) {
-            var bp = {
+            const bp = {
                 sample: sample,
                 positionIn: (this.PLAY_POSITION_RANGE * sample - 1) / this.trackSamples,
                 positionOut: (this.PLAY_POSITION_RANGE * nextSample - 1) / this.trackSamples,
@@ -1547,8 +1547,8 @@ PioneerDDJSB3.Slicer.prototype.generateBeatPositions = function() {
 PioneerDDJSB3.Slicer.prototype.getFirstBeat = function() {
     this.currentBeat = 0;
 
-    var oldCuePosition = engine.getValue(this.group, "hotcue_8_position");
-    var oldQuantize = engine.getValue(this.group, "quantize");
+    const oldCuePosition = engine.getValue(this.group, "hotcue_8_position");
+    const oldQuantize = engine.getValue(this.group, "quantize");
 
     this.oldCuePosition = oldCuePosition;
 
@@ -1567,7 +1567,7 @@ PioneerDDJSB3.Slicer.prototype.getFirstBeat = function() {
 };
 
 PioneerDDJSB3.Slicer.prototype.moveToSample = function(sample) {
-    var oldCuePosition = engine.getValue(this.group, "hotcue_8_position");
+    const oldCuePosition = engine.getValue(this.group, "hotcue_8_position");
 
     engine.setValue(this.group, "hotcue_8_set", true);
     engine.setValue(this.group, "hotcue_8_position", sample);
@@ -1581,15 +1581,15 @@ PioneerDDJSB3.Slicer.prototype.moveToSample = function(sample) {
 };
 
 PioneerDDJSB3.Slicer.prototype.playPositionChange = function(value) {
-    var playPositionDelta = Math.abs(this.latestPlayPosition - value);
-    var oldCurrentBeat = this.currentBeat;
+    const playPositionDelta = Math.abs(this.latestPlayPosition - value);
+    const oldCurrentBeat = this.currentBeat;
 
     if (playPositionDelta > this.playPositionDelta) {
         this.latestPlayPosition = value;
-        var found = false;
+        let found = false;
 
-        for (var i = 0; i < this.beatPositions.length; i++) {
-            var beatPosition = this.beatPositions[i];
+        for (let i = 0; i < this.beatPositions.length; i++) {
+            const beatPosition = this.beatPositions[i];
 
             if (value >= beatPosition.positionIn && value < beatPosition.positionOut) {
                 this.currentBeat = i;
@@ -1609,10 +1609,10 @@ PioneerDDJSB3.Slicer.prototype.playPositionChange = function(value) {
 };
 
 PioneerDDJSB3.Slicer.prototype.midiOuputUpdate = function() {
-    var onLedMidi = PioneerDDJSB3.midiOutputBeatLedsStart + this.currentBeat;
+    const onLedMidi = PioneerDDJSB3.midiOutputBeatLedsStart + this.currentBeat;
 
-    for (var i = 0; i < PioneerDDJSB3.midiOutputBeatLedsCount; i++) {
-        var ledMidi = PioneerDDJSB3.midiOutputBeatLedsStart + i;
+    for (let i = 0; i < PioneerDDJSB3.midiOutputBeatLedsCount; i++) {
+        const ledMidi = PioneerDDJSB3.midiOutputBeatLedsStart + i;
 
         if (ledMidi !== onLedMidi) {
             midi.sendShortMsg(this.midiOutputOp, ledMidi, 0x0);

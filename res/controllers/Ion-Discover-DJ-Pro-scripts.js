@@ -18,15 +18,15 @@ IonDiscoverDjPro.init = function() {	// called when the MIDI device is opened & 
 };
 
 IonDiscoverDjPro.shutdown = function() {	// called when the MIDI device is closed
-    var lowestLED = 0x30;
-    var highestLED = 0x73;
-    for (var i=lowestLED; i<=highestLED; i++) {
+    const lowestLED = 0x30;
+    const highestLED = 0x73;
+    for (let i=lowestLED; i<=highestLED; i++) {
         IonDiscoverDjPro.setLED(i, false);	// Turn off all the lights
     }
 };
 
 IonDiscoverDjPro.groupToDeck = function(group) {
-    var matches = group.match(/^\[Channel(\d+)\]$/);
+    const matches = group.match(/^\[Channel(\d+)\]$/);
     if (matches === null) {
         return -1;
     } else {
@@ -45,9 +45,9 @@ IonDiscoverDjPro.setLED = function(value, status) {
 
 IonDiscoverDjPro.samplesPerBeat = function(group) {
     // FIXME: Get correct samplerate and channels for current deck
-    var sampleRate = 44100;
-    var channels = 2;
-    var bpm = engine.getValue(group, "file_bpm");
+    const sampleRate = 44100;
+    const channels = 2;
+    const bpm = engine.getValue(group, "file_bpm");
     return channels * sampleRate * 60 / bpm;
 };
 
@@ -56,7 +56,7 @@ IonDiscoverDjPro.selectKnob = function(channel, control, value, status, group) {
         value = value - 128;
     }
     if (IonDiscoverDjPro.directoryMode) {
-        var i;
+        let i;
         if (value > 0) {
             for (i = 0; i < value; i++) {
                 engine.setValue(group, "SelectNextPlaylist", 1);
@@ -72,41 +72,41 @@ IonDiscoverDjPro.selectKnob = function(channel, control, value, status, group) {
 };
 
 IonDiscoverDjPro.loopIn = function(channel, control, value, status, group) {
-    var deck = IonDiscoverDjPro.groupToDeck(group);
+    const deck = IonDiscoverDjPro.groupToDeck(group);
     if (value) {
         if (IonDiscoverDjPro.manualLooping[deck]) {
             // Cut loop to Half
-            var start = engine.getValue(group, "loop_start_position");
-            var end = engine.getValue(group, "loop_end_position");
+            const start = engine.getValue(group, "loop_start_position");
+            const end = engine.getValue(group, "loop_end_position");
             if ((start !== -1) && (end !== -1)) {
-                var len = (end - start) / 2;
+                const len = (end - start) / 2;
                 engine.setValue(group, "loop_end_position", start + len);
             }
         } else {
             if (engine.getValue(group, "loop_enabled")) {
                 engine.setValue(group, "reloop_exit", 1);
-                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["reLoop"], false);
+                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].reLoop, false);
             }
             engine.setValue(group, "loop_in", 1);
             engine.setValue(group, "loop_end_position", -1);
-            IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["loopIn"], true);
-            IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["loopOut"], false);
+            IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].loopIn, true);
+            IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].loopOut, false);
         }
     }
 };
 
 IonDiscoverDjPro.loopOut = function(channel, control, value, status, group) {
-    var deck = IonDiscoverDjPro.groupToDeck(group);
+    const deck = IonDiscoverDjPro.groupToDeck(group);
     if (value) {
-        var start = engine.getValue(group, "loop_start_position");
-        var end = engine.getValue(group, "loop_end_position");
+        const start = engine.getValue(group, "loop_start_position");
+        const end = engine.getValue(group, "loop_end_position");
         if (IonDiscoverDjPro.manualLooping[deck]) {
             // Set loop to current Bar (very approximative and would need to get fixed !!!)
-            var bar = IonDiscoverDjPro.samplesPerBeat(group);
+            const bar = IonDiscoverDjPro.samplesPerBeat(group);
             engine.setValue(group, "loop_in", 1);
             engine.setValue(group, "loop_end_position", start + bar);
-            IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["loopIn"], true);
-            IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["loopOut"], true);
+            IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].loopIn, true);
+            IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].loopOut, true);
         } else {
             if (start === -1) {
                 return;
@@ -114,37 +114,37 @@ IonDiscoverDjPro.loopOut = function(channel, control, value, status, group) {
             if (end !== -1) {
                 // Loop In and Out set -> call Reloop/Exit
                 engine.setValue(group, "reloop_exit", 1);
-                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["loopIn"], true);
-                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["loopOut"], true);
-                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["reLoop"], true);
+                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].loopIn, true);
+                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].loopOut, true);
+                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].reLoop, true);
             } else {
                 // Loop In set -> call Loop Out
                 engine.setValue(group, "loop_out", 1);
-                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["loopOut"], true);
+                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].loopOut, true);
             }
         }
     }
 };
 
 IonDiscoverDjPro.reLoop = function(channel, control, value, status, group) {
-    var deck = IonDiscoverDjPro.groupToDeck(group);
+    const deck = IonDiscoverDjPro.groupToDeck(group);
     if (value) {
-        var start = engine.getValue(group, "loop_start_position");
-        var end = engine.getValue(group, "loop_end_position");
+        const start = engine.getValue(group, "loop_start_position");
+        const end = engine.getValue(group, "loop_end_position");
 
         if (IonDiscoverDjPro.manualLooping[deck]) {
             // Multiply Loop by Two
             if ((start !== -1) && (end !== -1)) {
-                var len = (end - start) * 2;
+                const len = (end - start) * 2;
                 engine.setValue(group, "loop_end_position", start + len);
             }
         } else {
             if (engine.getValue(group, "loop_enabled")) {
-                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["reLoop"], false);
+                IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].reLoop, false);
             } else {
                 if ((start !== -1) && (end !== -1)) {
                     // Loop is set ! Light the led
-                    IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["reLoop"], true);
+                    IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].reLoop, true);
                 }
             }
             engine.setValue(group, "reloop_exit", 1);
@@ -166,9 +166,9 @@ IonDiscoverDjPro.playFromCue = function(channel, control, value, status, group) 
 };
 
 IonDiscoverDjPro.jogWheel = function(channel, control, value, status, group) {
-    var deck = IonDiscoverDjPro.groupToDeck(group);
-    var adjustedJog = parseFloat(value);
-    var posNeg = 1;
+    const deck = IonDiscoverDjPro.groupToDeck(group);
+    let adjustedJog = parseFloat(value);
+    let posNeg = 1;
     if (adjustedJog > 63) {	// Counter-clockwise
         posNeg = -1;
         adjustedJog = value - 128;
@@ -183,10 +183,10 @@ IonDiscoverDjPro.jogWheel = function(channel, control, value, status, group) {
         engine.scratchTick(deck, adjustedJog);
         IonDiscoverDjPro.scratchTimer[deck] = engine.beginTimer(20, "IonDiscoverDjPro.jogWheelStopScratch(" + deck + ")", true);
     } else {
-        var gammaInputRange = 23;	// Max jog speed
-        var maxOutFraction = 0.5;	// Where on the curve it should peak; 0.5 is half-way
-        var sensitivity = 0.5;		// Adjustment gamma
-        var gammaOutputRange = 3;	// Max rate change
+        const gammaInputRange = 23;	// Max jog speed
+        const maxOutFraction = 0.5;	// Where on the curve it should peak; 0.5 is half-way
+        const sensitivity = 0.5;		// Adjustment gamma
+        const gammaOutputRange = 3;	// Max rate change
         if (engine.getValue(group, "play")) {
             adjustedJog = posNeg * gammaOutputRange * Math.pow(Math.abs(adjustedJog) / (gammaInputRange * maxOutFraction), sensitivity);
         } else {
@@ -202,7 +202,7 @@ IonDiscoverDjPro.jogWheelStopScratch = function(deck) {
 };
 
 IonDiscoverDjPro.WheelTouch = function(channel, control, value, status, group) {
-    var deck = IonDiscoverDjPro.groupToDeck(group);
+    const deck = IonDiscoverDjPro.groupToDeck(group);
     if (IonDiscoverDjPro.scratchMode[deck]) {
         if (value) {
             engine.scratchEnable(deck, 512, 33+1/3, 0.2, (0.2)/32);
@@ -229,7 +229,7 @@ IonDiscoverDjPro.toggleDirectoryMode = function(channel, control, value) {
 };
 
 IonDiscoverDjPro.toggleScratchMode = function(channel, control, value, status, group) {
-    var deck = IonDiscoverDjPro.groupToDeck(group);
+    const deck = IonDiscoverDjPro.groupToDeck(group);
     // Toggle setting and light
     if (value) {
         if (IonDiscoverDjPro.scratchMode[deck]) {
@@ -237,12 +237,12 @@ IonDiscoverDjPro.toggleScratchMode = function(channel, control, value, status, g
         } else {
             IonDiscoverDjPro.scratchMode[deck] = true;
         }
-        IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["scratchMode"], IonDiscoverDjPro.scratchMode[deck]);
+        IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].scratchMode, IonDiscoverDjPro.scratchMode[deck]);
     }
 };
 
 IonDiscoverDjPro.toggleManualLooping = function(channel, control, value, status, group) {
-    var deck = IonDiscoverDjPro.groupToDeck(group);
+    const deck = IonDiscoverDjPro.groupToDeck(group);
     // Toggle setting and light
     if (value) {
         if (IonDiscoverDjPro.manualLooping[deck]) {
@@ -250,6 +250,6 @@ IonDiscoverDjPro.toggleManualLooping = function(channel, control, value, status,
         } else {
             IonDiscoverDjPro.manualLooping[deck] = true;
         }
-        IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck]["manualLoop"], IonDiscoverDjPro.manualLooping[deck]);
+        IonDiscoverDjPro.setLED(IonDiscoverDjPro.leds[deck].manualLoop, IonDiscoverDjPro.manualLooping[deck]);
     }
 };

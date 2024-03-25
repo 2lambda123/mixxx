@@ -188,7 +188,7 @@ PioneerDDJSB2.init = function(_id) {
 };
 
 PioneerDDJSB2.Deck = function(deckNumber) {
-    var theDeck = this;
+    const theDeck = this;
     this.group = "[Channel" + deckNumber + "]";
 
     this.shiftButton = function(channel, control, value, _status, _group) {
@@ -224,7 +224,7 @@ PioneerDDJSB2.Deck = function(deckNumber) {
         sendShifted: true,
     });
 
-    var effectUnitNumber = deckNumber;
+    let effectUnitNumber = deckNumber;
     if (deckNumber > 2) {
         effectUnitNumber -= 2;
     }
@@ -237,7 +237,7 @@ PioneerDDJSB2.Deck = function(deckNumber) {
             this.connect();
         },
         shift: function() {
-            var focusedEffect = engine.getValue("[EffectRack1_EffectUnit" + effectUnitNumber + "]", "focused_effect");
+            const focusedEffect = engine.getValue("[EffectRack1_EffectUnit" + effectUnitNumber + "]", "focused_effect");
             this.group = "[EffectRack1_EffectUnit" + effectUnitNumber + "_Effect" + focusedEffect + "]";
             this.inKey = "parameter1";
             this.disconnect();
@@ -246,7 +246,7 @@ PioneerDDJSB2.Deck = function(deckNumber) {
     });
 
     this.eqKnob = [];
-    for (var k = 1; k <= 3; k++) {
+    for (let k = 1; k <= 3; k++) {
         this.eqKnob[k] = new components.Pot({
             number: k,
             unshift: function() {
@@ -256,7 +256,7 @@ PioneerDDJSB2.Deck = function(deckNumber) {
                 this.connect();
             },
             shift: function() {
-                var focusedEffect = engine.getValue("[EffectRack1_EffectUnit" + effectUnitNumber + "]", "focused_effect");
+                const focusedEffect = engine.getValue("[EffectRack1_EffectUnit" + effectUnitNumber + "]", "focused_effect");
                 this.group = "[EffectRack1_EffectUnit" + effectUnitNumber + "_Effect" + focusedEffect + "]";
                 this.inKey = "parameter" + (5 - this.number);
                 this.disconnect();
@@ -273,7 +273,7 @@ PioneerDDJSB2.Deck = function(deckNumber) {
             this.connect();
         },
         shift: function() {
-            var focusedEffect = engine.getValue("[EffectRack1_EffectUnit" + effectUnitNumber + "]", "focused_effect");
+            const focusedEffect = engine.getValue("[EffectRack1_EffectUnit" + effectUnitNumber + "]", "focused_effect");
             this.group = "[EffectRack1_EffectUnit" + effectUnitNumber + "_Effect" + focusedEffect + "]";
             this.inKey = "parameter5";
             this.disconnect();
@@ -372,9 +372,9 @@ PioneerDDJSB2.Deck.prototype = components.ComponentContainer.prototype;
 
 PioneerDDJSB2.shutdown = function() {
     // turn off button LEDs
-    var skip = [0x72, 0x1B, 0x69, 0x1E, 0x6B, 0x20, 0x6D, 0x22, 0x6F, 0x70, 0x75];
+    const skip = [0x72, 0x1B, 0x69, 0x1E, 0x6B, 0x20, 0x6D, 0x22, 0x6F, 0x70, 0x75];
     for (var channel = 0; channel <= 10; channel++) {
-        for (var control = 0; control <= 127; control++) {
+        for (let control = 0; control <= 127; control++) {
             // skip deck toggle buttons and pad mode buttons
             if (skip.indexOf(control) > -1) {
                 continue;
@@ -400,7 +400,7 @@ PioneerDDJSB2.longButtonPressWait = function() {
 };
 
 PioneerDDJSB2.speedRateToNormal = function(group, deck) {
-    var speed = engine.getValue(group, "rate");
+    const speed = engine.getValue(group, "rate");
     if (speed > 0) {
         engine.setValue(group, "rate_perm_up_small", true);
         if (engine.getValue(group, "rate") <= 0) {
@@ -496,7 +496,7 @@ PioneerDDJSB2.bindSamplerControlConnections = function(samplerGroup, isUnbinding
 };
 
 PioneerDDJSB2.bindDeckControlConnections = function(channelGroup, isUnbinding) {
-    var i,
+    let i,
         index,
         controlsToFunctions = {
             "pfl": "PioneerDDJSB2.headphoneCueLed",
@@ -526,7 +526,7 @@ PioneerDDJSB2.bindDeckControlConnections = function(channelGroup, isUnbinding) {
 };
 
 PioneerDDJSB2.bindNonDeckControlConnections = function(isUnbinding) {
-    var samplerIndex;
+    let samplerIndex;
 
     for (samplerIndex = 1; samplerIndex <= 4; samplerIndex++) {
         PioneerDDJSB2.bindSamplerControlConnections("[Sampler" + samplerIndex + "]", isUnbinding);
@@ -544,7 +544,7 @@ PioneerDDJSB2.bindNonDeckControlConnections = function(isUnbinding) {
 };
 
 PioneerDDJSB2.bindAllControlConnections = function(isUnbinding) {
-    var samplerIndex,
+    let samplerIndex,
         channelIndex;
 
     for (samplerIndex = 1; samplerIndex <= 4; samplerIndex++) {
@@ -598,7 +598,7 @@ PioneerDDJSB2.deckFaderMSB = function(channel, control, value, status, group) {
 };
 
 PioneerDDJSB2.deckFaderLSB = function(channel, control, value, status, group) {
-    var fullValue = (PioneerDDJSB2.highResMSB[group].deckFader << 7) + value;
+    const fullValue = (PioneerDDJSB2.highResMSB[group].deckFader << 7) + value;
 
     if (PioneerDDJSB2.shiftPressed &&
         engine.getValue(group, "volume") === 0 &&
@@ -626,7 +626,7 @@ PioneerDDJSB2.deckFaderLSB = function(channel, control, value, status, group) {
 ///////////////////////////////////////////////////////////////
 
 PioneerDDJSB2.shiftButton = function(channel, control, value, _status, _group) {
-    var index = 0;
+    let index = 0;
     PioneerDDJSB2.shiftPressed = (value === 0x7F);
     for (index in PioneerDDJSB2.chFaderStart) {
         PioneerDDJSB2.chFaderStart[index] = null;
@@ -652,12 +652,12 @@ PioneerDDJSB2.headphoneShiftCueButton = function(channel, control, value, status
 };
 
 PioneerDDJSB2.hotCueButtons = function(channel, control, value, status, group) {
-    var hotCueIndex = (control >= 0x40 ? control - 0x40 + 5 : control + 1);
+    const hotCueIndex = (control >= 0x40 ? control - 0x40 + 5 : control + 1);
     engine.setValue(PioneerDDJSB2.deckSwitchTable[group], "hotcue_" + hotCueIndex + "_activate", value);
 };
 
 PioneerDDJSB2.clearHotCueButtons = function(channel, control, value, status, group) {
-    var hotCueIndex = (control >= 0x48 ? control - 0x48 + 5 : control - 7);
+    const hotCueIndex = (control >= 0x48 ? control - 0x48 + 5 : control - 7);
     if (value) {
         engine.setValue(PioneerDDJSB2.deckSwitchTable[group], "hotcue_" + hotCueIndex + "_clear", 1);
     }
@@ -668,7 +668,7 @@ PioneerDDJSB2.cueButton = function(channel, control, value, status, group) {
 };
 
 PioneerDDJSB2.beatloopRollButtons = function(channel, control, value, status, group) {
-    var index = (control <= 0x53 ? control - 0x50 : control - 0x54);
+    const index = (control <= 0x53 ? control - 0x50 : control - 0x54);
     engine.setValue(
         PioneerDDJSB2.deckSwitchTable[group],
         "beatlooproll_" + PioneerDDJSB2.looprollIntervals[index] + "_activate",
@@ -699,7 +699,7 @@ PioneerDDJSB2.keyLockButton = function(channel, control, value, status, group) {
 };
 
 PioneerDDJSB2.shiftKeyLockButton = function(channel, control, value, status, group) {
-    var deck = status - 0x90;
+    const deck = status - 0x90;
     if (value) {
         engine.stopTimer(PioneerDDJSB2.speedRateToNormalTimer[deck]);
         PioneerDDJSB2.speedRateToNormalTimer[deck] = engine.beginTimer(PioneerDDJSB2.speedRateToNormalTime, "PioneerDDJSB2.speedRateToNormal('" + group + "', " + deck + ")");
@@ -776,7 +776,7 @@ PioneerDDJSB2.muteButton = function(channel, control, value, status, group) {
 ///////////////////////////////////////////////////////////////
 
 PioneerDDJSB2.deckConverter = function(group) {
-    var index;
+    let index;
 
     if (typeof group === "string") {
         for (index in PioneerDDJSB2.deckSwitchTable) {
@@ -790,7 +790,7 @@ PioneerDDJSB2.deckConverter = function(group) {
 };
 
 PioneerDDJSB2.padLedControl = function(deck, groupNumber, shiftGroup, ledNumber, shift, active) {
-    var padLedsBaseChannel = 0x97,
+    const padLedsBaseChannel = 0x97,
         padLedControl = (shiftGroup ? 0x40 : 0x00) + (shift ? 0x08 : 0x00) + groupNumber + ledNumber,
         midiChannelOffset = PioneerDDJSB2.deckConverter(deck);
 
@@ -804,7 +804,7 @@ PioneerDDJSB2.padLedControl = function(deck, groupNumber, shiftGroup, ledNumber,
 };
 
 PioneerDDJSB2.nonPadLedControl = function(deck, ledNumber, active) {
-    var nonPadLedsBaseChannel = 0x90,
+    const nonPadLedsBaseChannel = 0x90,
         midiChannelOffset = PioneerDDJSB2.deckConverter(deck);
 
     if (midiChannelOffset !== null) {
@@ -873,7 +873,7 @@ PioneerDDJSB2.muteLed = function(value, group, _control) {
 };
 
 PioneerDDJSB2.samplerLeds = function(value, group, _control) {
-    var sampler = PioneerDDJSB2.samplerGroups[group],
+    let sampler = PioneerDDJSB2.samplerGroups[group],
         channel;
 
     for (channel = 0; channel < 4; channel++) {
@@ -885,7 +885,7 @@ PioneerDDJSB2.samplerLeds = function(value, group, _control) {
 };
 
 PioneerDDJSB2.beatlooprollLeds = function(value, group, control) {
-    var index,
+    let index,
         padNum,
         shifted;
 
@@ -899,7 +899,7 @@ PioneerDDJSB2.beatlooprollLeds = function(value, group, control) {
 };
 
 PioneerDDJSB2.hotCueLeds = function(value, group, control) {
-    var shiftedGroup = false,
+    let shiftedGroup = false,
         padNum = null,
         hotCueNum;
 
@@ -925,7 +925,7 @@ PioneerDDJSB2.VuMeterLeds = function(value, group, control) {
     }
 
     if (!(PioneerDDJSB2.twinkleVumeterAutodjOn && engine.getValue("[AutoDJ]", "enabled"))) {
-        var midiChannel;
+        let midiChannel;
         if (PioneerDDJSB2.showVumeterMaster) {
             if (control === "VuMeterL") {
                 midiChannel = 0;
@@ -953,8 +953,8 @@ PioneerDDJSB2.VuMeterLeds = function(value, group, control) {
             PioneerDDJSB2.valueVuMeter[group + "_current"] = value;
         }
 
-        for (var channel = 0; channel < 4; channel++) {
-            var midiOut = PioneerDDJSB2.valueVuMeter["[Channel" + (channel + 1) + "]_current"];
+        for (let channel = 0; channel < 4; channel++) {
+            let midiOut = PioneerDDJSB2.valueVuMeter["[Channel" + (channel + 1) + "]_current"];
             if (PioneerDDJSB2.valueVuMeter["[Channel" + (channel + 1) + "]_enabled"]) {
                 midiOut = 0;
             }
@@ -993,7 +993,7 @@ PioneerDDJSB2.jogRingTickShift = function(channel, control, value, status, group
 };
 
 PioneerDDJSB2.jogPlatterTick = function(channel, control, value, status, group) {
-    var deck = PioneerDDJSB2.channelGroups[PioneerDDJSB2.deckSwitchTable[group]];
+    const deck = PioneerDDJSB2.channelGroups[PioneerDDJSB2.deckSwitchTable[group]];
     if (PioneerDDJSB2.scratchMode[deck]) {
         engine.scratchTick(deck + 1, PioneerDDJSB2.getJogWheelDelta(value));
     } else {
@@ -1002,7 +1002,7 @@ PioneerDDJSB2.jogPlatterTick = function(channel, control, value, status, group) 
 };
 
 PioneerDDJSB2.jogPlatterTickShift = function(channel, control, value, status, group) {
-    var deck = PioneerDDJSB2.channelGroups[PioneerDDJSB2.deckSwitchTable[group]];
+    const deck = PioneerDDJSB2.channelGroups[PioneerDDJSB2.deckSwitchTable[group]];
     if (PioneerDDJSB2.scratchMode[deck]) {
         engine.scratchTick(deck + 1, PioneerDDJSB2.getJogWheelDelta(value));
     } else {
@@ -1014,7 +1014,7 @@ PioneerDDJSB2.jogPlatterTickShift = function(channel, control, value, status, gr
 };
 
 PioneerDDJSB2.jogTouch = function(channel, control, value, status, group) {
-    var deck = PioneerDDJSB2.channelGroups[PioneerDDJSB2.deckSwitchTable[group]];
+    const deck = PioneerDDJSB2.channelGroups[PioneerDDJSB2.deckSwitchTable[group]];
 
     if (PioneerDDJSB2.scratchMode[deck]) {
         if (value) {
@@ -1033,7 +1033,7 @@ PioneerDDJSB2.jogTouch = function(channel, control, value, status, group) {
 };
 
 PioneerDDJSB2.toggleScratch = function(channel, control, value, status, group) {
-    var deck = PioneerDDJSB2.channelGroups[group];
+    const deck = PioneerDDJSB2.channelGroups[group];
     if (value) {
         PioneerDDJSB2.scratchMode[deck] = !PioneerDDJSB2.scratchMode[deck];
         if (!PioneerDDJSB2.invertVinylSlipButton) {
@@ -1047,7 +1047,7 @@ PioneerDDJSB2.toggleScratch = function(channel, control, value, status, group) {
 };
 
 PioneerDDJSB2.pitchBendFromJog = function(channel, movement) {
-    var group = (typeof channel === "string" ? channel : "[Channel" + channel + 1 + "]");
+    const group = (typeof channel === "string" ? channel : "[Channel" + channel + 1 + "]");
 
     engine.setValue(group, "jog", movement / 5 * PioneerDDJSB2.jogwheelSensitivity);
 };
@@ -1060,7 +1060,7 @@ PioneerDDJSB2.pitchBendFromJog = function(channel, movement) {
 PioneerDDJSB2.rotarySelectorChanged = false; // new for DDJ-SB2
 
 PioneerDDJSB2.getRotaryDelta = function(value) {
-    var delta = 0x40 - Math.abs(0x40 - value),
+    let delta = 0x40 - Math.abs(0x40 - value),
         isCounterClockwise = value > 0x40;
 
     if (isCounterClockwise) {
@@ -1070,14 +1070,14 @@ PioneerDDJSB2.getRotaryDelta = function(value) {
 };
 
 PioneerDDJSB2.rotarySelector = function(channel, control, value, _status) {
-    var delta = PioneerDDJSB2.getRotaryDelta(value);
+    const delta = PioneerDDJSB2.getRotaryDelta(value);
     engine.setValue("[Playlist]", "SelectTrackKnob", delta);
 
     PioneerDDJSB2.rotarySelectorChanged = true;
 };
 
 PioneerDDJSB2.shiftedRotarySelector = function(channel, control, value, _status) {
-    var delta = PioneerDDJSB2.getRotaryDelta(value),
+    const delta = PioneerDDJSB2.getRotaryDelta(value),
         f = (delta > 0 ? "SelectNextPlaylist" : "SelectPrevPlaylist");
 
     engine.setValue("[Playlist]", f, Math.abs(delta));
@@ -1114,7 +1114,7 @@ PioneerDDJSB2.rotarySelectorShiftedClick = function(channel, control, value, _st
 ///////////////////////////////////////////////////////////////
 
 PioneerDDJSB2.EffectUnit = function(unitNumber) {
-    var eu = this;
+    const eu = this;
     this.group = "[EffectRack1_EffectUnit" + unitNumber + "]";
     engine.setValue(this.group, "show_focus", 1);
 
@@ -1131,13 +1131,13 @@ PioneerDDJSB2.EffectUnit = function(unitNumber) {
             if (this.isPress(channel, control, value, status)) {
                 this.isLongPressed = false;
                 this.longPressTimer = engine.beginTimer(this.longPressTimeout, function() {
-                    var effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + this.buttonNumber + "]";
+                    const effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + this.buttonNumber + "]";
                     script.toggleControl(effectGroup, "enabled");
                     this.isLongPressed = true;
                 }, true);
             } else {
                 if (!this.isLongPressed) {
-                    var focusedEffect = engine.getValue(eu.group, "focused_effect");
+                    const focusedEffect = engine.getValue(eu.group, "focused_effect");
                     if (focusedEffect === this.buttonNumber) {
                         engine.setValue(eu.group, "focused_effect", 0);
                     } else {
@@ -1158,10 +1158,10 @@ PioneerDDJSB2.EffectUnit = function(unitNumber) {
     });
 
     this.button = [];
-    for (var i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 3; i++) {
         this.button[i] = new this.EffectButton(i);
 
-        var effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + i + "]";
+        const effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + i + "]";
         engine.softTakeover(effectGroup, "meta", true);
         engine.softTakeover(eu.group, "mix", true);
     }
@@ -1171,11 +1171,11 @@ PioneerDDJSB2.EffectUnit = function(unitNumber) {
             this.input = function(channel, control, value, _status) {
                 value = (this.MSB << 7) + value;
 
-                var focusedEffect = engine.getValue(eu.group, "focused_effect");
+                const focusedEffect = engine.getValue(eu.group, "focused_effect");
                 if (focusedEffect === 0) {
                     engine.setParameter(eu.group, "mix", value / this.max);
                 } else {
-                    var effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + focusedEffect + "]";
+                    const effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + focusedEffect + "]";
                     engine.setParameter(effectGroup, "meta", value / this.max);
                 }
             };
@@ -1186,8 +1186,8 @@ PioneerDDJSB2.EffectUnit = function(unitNumber) {
         if (value === 0) {
             engine.softTakeoverIgnoreNextValue(eu.group, "mix");
         } else {
-            var effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + value + "]";
+            const effectGroup = "[EffectRack1_EffectUnit" + unitNumber + "_Effect" + value + "]";
             engine.softTakeoverIgnoreNextValue(effectGroup, "meta");
         }
-    }.bind(this));
+    });
 };

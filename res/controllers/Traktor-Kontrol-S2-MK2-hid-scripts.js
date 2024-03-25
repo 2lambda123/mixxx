@@ -118,8 +118,8 @@ var TraktorS2MK2 = new function() {
 };
 
 TraktorS2MK2.registerInputPackets = function() {
-    var MessageShort = new HIDPacket("shortmessage", 0x01, this.shortMessageCallback);
-    var MessageLong = new HIDPacket("longmessage", 0x02, this.longMessageCallback);
+    const MessageShort = new HIDPacket("shortmessage", 0x01, this.shortMessageCallback);
+    const MessageLong = new HIDPacket("longmessage", 0x02, this.longMessageCallback);
 
     // Values in the short message are all buttons, except the jog wheels.
     // An exclamation point indicates a specially-handled function.  Everything else is a standard
@@ -251,10 +251,10 @@ TraktorS2MK2.registerInputPackets = function() {
     engine.softTakeover("[EqualizerRack1_[Channel2]_Effect1]", "parameter2", true);
     engine.softTakeover("[EqualizerRack1_[Channel2]_Effect1]", "parameter1", true);
 
-    for (var i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 3; i++) {
         engine.softTakeover("[EffectRack1_EffectUnit1_Effect" + i + "]", "meta", true);
         engine.softTakeover("[EffectRack1_EffectUnit2_Effect" + i + "]", "meta", true);
-        for (var j = 1; j <= 3; j++) {
+        for (let j = 1; j <= 3; j++) {
             engine.softTakeover("[EffectRack1_EffectUnit1_Effect" + i + "]", "parameter" + j, true);
             engine.softTakeover("[EffectRack1_EffectUnit2_Effect" + i + "]", "parameter" + j, true);
         }
@@ -277,18 +277,18 @@ TraktorS2MK2.registerInputPackets = function() {
 };
 
 TraktorS2MK2.registerOutputPackets = function() {
-    var OutputTop = new HIDPacket("outputTop", 0x80);
-    var OutputBottom = new HIDPacket("outputBottom", 0x81);
+    const OutputTop = new HIDPacket("outputTop", 0x80);
+    const OutputBottom = new HIDPacket("outputBottom", 0x81);
 
     OutputTop.addOutput("[Channel1]", "track_loaded", 0x19, "B");
     OutputTop.addOutput("[Channel2]", "track_loaded", 0x1A, "B");
 
-    var VuOffsets = {
+    const VuOffsets = {
         "[Channel1]": 0x01,
         "[Channel2]": 0x06
     };
-    for (var ch in VuOffsets) {
-        for (var i = 0; i <= 0x03; i++) {
+    for (const ch in VuOffsets) {
+        for (let i = 0; i <= 0x03; i++) {
             OutputTop.addOutput(ch, "!" + "VuMeter" + i, VuOffsets[ch] + i, "B");
         }
     }
@@ -422,14 +422,14 @@ TraktorS2MK2.linkChannelOutput = function(group, key, callback) {
 };
 
 TraktorS2MK2.lightGroup = function(packet, outputGroupName, coGroupName) {
-    var groupObject = packet.groups[outputGroupName];
-    for (var fieldName in groupObject) {
-        var field = groupObject[fieldName];
+    const groupObject = packet.groups[outputGroupName];
+    for (const fieldName in groupObject) {
+        const field = groupObject[fieldName];
         if (field.name[0] === "!") {
             continue;
         }
         if (field.mapped_callback) {
-            var value = engine.getValue(coGroupName, field.name);
+            const value = engine.getValue(coGroupName, field.name);
             field.mapped_callback(value, coGroupName, field.name);
         }
     // No callback, no light!
@@ -440,7 +440,7 @@ TraktorS2MK2.lightDeck = function(group) {
     // Freeze the lights while we do this update so we don't spam HID.
     this.batchingLEDUpdate = true;
     for (var packetName in this.controller.OutputPackets) {
-        var packet = this.controller.OutputPackets[packetName];
+        const packet = this.controller.OutputPackets[packetName];
         TraktorS2MK2.lightGroup(packet, group, group);
         // These outputs show state managed by this script and do not react to ControlObject changes,
         // so manually set them here.
@@ -477,9 +477,9 @@ TraktorS2MK2.init = function() {
 
     TraktorS2MK2.registerInputPackets();
 
-    var debugLEDs = false;
+    const debugLEDs = false;
     if (debugLEDs) {
-        var data = [0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f];
+        const data = [0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f];
         controller.send(data, data.length, 0x80);
     } else {
         TraktorS2MK2.registerOutputPackets();
@@ -493,7 +493,7 @@ TraktorS2MK2.init = function() {
 };
 
 TraktorS2MK2.shutdown = function() {
-    var data = [];
+    const data = [];
     for (var i = 0; i <= 37; i++) {
         data[i] = 0;
     }
@@ -513,8 +513,8 @@ TraktorS2MK2.incomingData = function(data, length) {
 
 // The short message handles buttons and jog wheels.
 TraktorS2MK2.shortMessageCallback = function(packet, data) {
-    for (var name in data) {
-        var field = data[name];
+    for (const name in data) {
+        const field = data[name];
         if (field.name === "!jog_wheel") {
             TraktorS2MK2.controller.processControl(field);
             continue;
@@ -526,14 +526,14 @@ TraktorS2MK2.shortMessageCallback = function(packet, data) {
 
 // There are no buttons handled by the long message, so this is a little simpler.
 TraktorS2MK2.longMessageCallback = function(packet, data) {
-    for (var name in data) {
-        var field = data[name];
+    for (const name in data) {
+        const field = data[name];
         TraktorS2MK2.controller.processControl(field);
     }
 };
 
 TraktorS2MK2.samplerGainKnob = function(field) {
-    for (var i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 8; i++) {
         engine.setParameter("[Sampler" + i + "]", "pregain", field.value / 4096);
     }
 };
@@ -545,7 +545,7 @@ TraktorS2MK2.toggleButton = function(field) {
 };
 
 TraktorS2MK2.shift = function(field) {
-    var group = field.id.split(".")[0];
+    const group = field.id.split(".")[0];
     TraktorS2MK2.shiftPressed[group] = field.value > 0;
     TraktorS2MK2.controller.setOutput(group, "!shift",
         TraktorS2MK2.shiftPressed[group] ? ButtonBrightnessOn : ButtonBrightnessOff, field.group, "!shift",
@@ -553,8 +553,8 @@ TraktorS2MK2.shift = function(field) {
 };
 
 TraktorS2MK2.loadTrackButton = function(field) {
-    var split = field.id.split(".");
-    var group = split[0];
+    const split = field.id.split(".");
+    const group = split[0];
     if (TraktorS2MK2.shiftPressed[group]) {
         engine.setValue(field.group, "eject", field.value);
     } else {
@@ -563,17 +563,17 @@ TraktorS2MK2.loadTrackButton = function(field) {
 };
 
 TraktorS2MK2.syncButton = function(field) {
-    var now = Date.now();
+    const now = Date.now();
 
-    var split = field.id.split(".");
-    var group = split[0];
+    const split = field.id.split(".");
+    const group = split[0];
     // If shifted, just toggle.
     // TODO(later version): actually make this enable explicit master.
     if (TraktorS2MK2.shiftPressed[group]) {
         if (field.value === 0) {
             return;
         }
-        var synced = engine.getValue(field.group, "sync_enabled");
+        const synced = engine.getValue(field.group, "sync_enabled");
         engine.setValue(field.group, "sync_enabled", !synced);
     } else {
         if (field.value === 1) {
@@ -596,8 +596,8 @@ TraktorS2MK2.syncButton = function(field) {
 };
 
 TraktorS2MK2.cueButton = function(field) {
-    var split = field.id.split(".");
-    var group = split[0];
+    const split = field.id.split(".");
+    const group = split[0];
     if (TraktorS2MK2.shiftPressed[group]) {
         if (ShiftCueButtonAction === "REWIND") {
             if (field.value === 0) {
@@ -616,14 +616,14 @@ TraktorS2MK2.playButton = function(field) {
     if (field.value === 0) {
         return;
     }
-    var split = field.id.split(".");
-    var group = split[0];
+    const split = field.id.split(".");
+    const group = split[0];
     if (TraktorS2MK2.shiftPressed[group]) {
-        var locked = engine.getValue(field.group, "keylock");
+        const locked = engine.getValue(field.group, "keylock");
         engine.setValue(field.group, "keylock", !locked);
     } else {
-        var playing = engine.getValue(field.group, "play");
-        var deckNumber = TraktorS2MK2.controller.resolveDeck(group);
+        const playing = engine.getValue(field.group, "play");
+        const deckNumber = TraktorS2MK2.controller.resolveDeck(group);
         // Failsafe to disable scratching in case the finishJogTouch timer has not executed yet
         // after a backspin.
         if (engine.isScratching(deckNumber)) {
@@ -640,17 +640,17 @@ TraktorS2MK2.jogTouch = function(field) {
         TraktorS2MK2.wheelTouchInertiaTimer[field.group] = 0;
     }
     if (field.value !== 0) {
-        var deckNumber = TraktorS2MK2.controller.resolveDeck(field.group);
+        const deckNumber = TraktorS2MK2.controller.resolveDeck(field.group);
         engine.scratchEnable(deckNumber, 1024, 33.3333, 0.125, 0.125/8, true);
     } else {
     // The wheel touch sensor can be overly sensitive, so don't release scratch mode right away.
     // Depending on how fast the platter was moving, lengthen the time we'll wait.
-        var scratchRate = Math.abs(engine.getValue(field.group, "scratch2"));
+        const scratchRate = Math.abs(engine.getValue(field.group, "scratch2"));
         // inertiaTime was experimentally determined. It should be enough time to allow the user to
         // press play after a backspin without normal playback starting before they can press the
         // button, but not so long that there is an awkward delay before stopping scratching after
         // a backspin.
-        var inertiaTime;
+        let inertiaTime;
         if (TraktorS2MK2.shiftPressed[field.group]) {
             inertiaTime = Math.pow(1.7, scratchRate / 10) / 1.6;
         } else {
@@ -670,15 +670,15 @@ TraktorS2MK2.jogTouch = function(field) {
 
 TraktorS2MK2.finishJogTouch = function(group) {
     TraktorS2MK2.wheelTouchInertiaTimer[group] = 0;
-    var deckNumber = TraktorS2MK2.controller.resolveDeck(group);
-    var play = engine.getValue(group, "play");
+    const deckNumber = TraktorS2MK2.controller.resolveDeck(group);
+    const play = engine.getValue(group, "play");
     if (play !== 0) {
     // If we are playing, just hand off to the engine.
         engine.scratchDisable(deckNumber, true);
     } else {
     // If things are paused, there will be a non-smooth handoff between scratching and jogging.
     // Instead, keep scratch on until the platter is not moving.
-        var scratchRate = Math.abs(engine.getValue(group, "scratch2"));
+        const scratchRate = Math.abs(engine.getValue(group, "scratch2"));
         if (scratchRate < 0.01) {
             // The platter is basically stopped, now we can disable scratch and hand off to jogging.
             engine.scratchDisable(deckNumber, true);
@@ -693,18 +693,18 @@ TraktorS2MK2.finishJogTouch = function(group) {
 };
 
 TraktorS2MK2.jogMove = function(field) {
-    var deltas = TraktorS2MK2.wheelDeltas(field.group, field.value);
-    var tickDelta = deltas[0];
-    var timeDelta = deltas[1];
+    const deltas = TraktorS2MK2.wheelDeltas(field.group, field.value);
+    let tickDelta = deltas[0];
+    const timeDelta = deltas[1];
 
     if (engine.getValue(field.group, "scratch2_enable")) {
-        var deckNumber = TraktorS2MK2.controller.resolveDeck(field.group);
+        const deckNumber = TraktorS2MK2.controller.resolveDeck(field.group);
         if (TraktorS2MK2.shiftPressed[field.group]) {
             tickDelta *= 10;
         }
         engine.scratchTick(deckNumber, tickDelta);
     } else {
-        var velocity = TraktorS2MK2.scalerJog(tickDelta, timeDelta, field.group);
+        const velocity = TraktorS2MK2.scalerJog(tickDelta, timeDelta, field.group);
         engine.setValue(field.group, "jog", velocity);
     }
 };
@@ -712,10 +712,10 @@ TraktorS2MK2.jogMove = function(field) {
 TraktorS2MK2.wheelDeltas = function(group, value) {
     // When the wheel is touched, four bytes change, but only the first behaves predictably.
     // It looks like the wheel is 1024 ticks per revolution.
-    var tickval = value & 0xFF;
-    var timeValue = value >>> 16;
-    var previousTick = 0;
-    var previousTime = 0;
+    const tickval = value & 0xFF;
+    let timeValue = value >>> 16;
+    let previousTick = 0;
+    let previousTime = 0;
 
     if (group[8] === "1" || group[8] === "3") {
         previousTick = TraktorS2MK2.lastTickValue[0];
@@ -733,13 +733,13 @@ TraktorS2MK2.wheelDeltas = function(group, value) {
     // We looped around.  Adjust current time so that subtraction works.
         timeValue += 0x10000;
     }
-    var timeDelta = timeValue - previousTime;
+    let timeDelta = timeValue - previousTime;
     if (timeDelta === 0) {
     // Spinning too fast to detect speed!  By not dividing we are guessing it took 1ms.
         timeDelta = 1;
     }
 
-    var tickDelta = 0;
+    let tickDelta = 0;
     if (previousTick >= 200 && tickval <= 100) {
         tickDelta = tickval + 256 - previousTick;
     } else if (previousTick <= 100 && tickval >= 200) {
@@ -798,7 +798,7 @@ TraktorS2MK2.setPadMode = function(group, padMode) {
         for (i = 1; i <= 4; i++) {
             // This function to create callback functions is needed so the loop index variable
             // i does not get captured in a closure within the callback.
-            var makeIntroOutroCallback = function(padNumber) {
+            const makeIntroOutroCallback = function(padNumber) {
                 return function(value, group, _control) {
                     if (value > 0) {
                         TraktorS2MK2.sendPadColor(group, padNumber, introOutroColors[padNumber-1]);
@@ -812,9 +812,9 @@ TraktorS2MK2.setPadMode = function(group, padMode) {
         }
     } else if (padMode === TraktorS2MK2.padModes.sampler) {
         for (i = 1; i <= 4; i++) {
-            var makeSamplerCallback = function(deckGroup, padNumber) {
-                var samplerNumber = deckGroup === "[Channel1]" ? padNumber : padNumber + 4;
-                var samplerGroup = "[Sampler" + samplerNumber + "]";
+            const makeSamplerCallback = function(deckGroup, padNumber) {
+                const samplerNumber = deckGroup === "[Channel1]" ? padNumber : padNumber + 4;
+                const samplerGroup = "[Sampler" + samplerNumber + "]";
                 return function(_value, _group, _control) {
                     if (engine.getValue(samplerGroup, "track_loaded")) {
                         if (engine.getValue(samplerGroup, "play") === 1) {
@@ -834,8 +834,8 @@ TraktorS2MK2.setPadMode = function(group, padMode) {
                 };
             };
 
-            var sNumber = group === "[Channel1]" ? i : i + 4;
-            var sGroup = "[Sampler" + sNumber + "]";
+            const sNumber = group === "[Channel1]" ? i : i + 4;
+            const sGroup = "[Sampler" + sNumber + "]";
             TraktorS2MK2.padConnections[group].push(engine.makeConnection(
                 sGroup, "track_loaded", makeSamplerCallback(group, i)));
             TraktorS2MK2.padConnections[group].push(engine.makeConnection(
@@ -872,8 +872,8 @@ TraktorS2MK2.samplerButton = function(buttonNumber, group, value) {
     if (value === 0) {
         return;
     }
-    var samplerNumber = group === "[Channel1]" ? buttonNumber : buttonNumber + 4;
-    var samplerGroup = "[Sampler" + samplerNumber + "]";
+    const samplerNumber = group === "[Channel1]" ? buttonNumber : buttonNumber + 4;
+    const samplerGroup = "[Sampler" + samplerNumber + "]";
     if (TraktorS2MK2.shiftPressed[group]) {
         if (engine.getValue(samplerGroup, "play") === 1) {
             engine.setValue(samplerGroup, "play", 0);
@@ -890,9 +890,9 @@ TraktorS2MK2.samplerButton = function(buttonNumber, group, value) {
 };
 
 TraktorS2MK2.padButton = function(field) {
-    var group = field.id.split(".")[0];
-    var buttonNumber = parseInt(field.name[field.name.length - 1]);
-    var padMode = TraktorS2MK2.currentPadMode[group];
+    const group = field.id.split(".")[0];
+    const buttonNumber = parseInt(field.name[field.name.length - 1]);
+    const padMode = TraktorS2MK2.currentPadMode[group];
 
     if (padMode === TraktorS2MK2.padModes.hotcue) {
         TraktorS2MK2.hotcueButton(buttonNumber, field.group, field.value);
@@ -907,7 +907,7 @@ TraktorS2MK2.samplerModeButton = function(field) {
     if (field.value === 0) {
         return;
     }
-    var padMode = TraktorS2MK2.currentPadMode[field.group];
+    const padMode = TraktorS2MK2.currentPadMode[field.group];
     if (padMode !== TraktorS2MK2.padModes.sampler) {
         TraktorS2MK2.setPadMode(field.group, TraktorS2MK2.padModes.sampler);
         TraktorS2MK2.controller.setOutput(field.group, "!remix_button", ButtonBrightnessOn, false);
@@ -922,7 +922,7 @@ TraktorS2MK2.introOutroModeButton = function(field) {
     if (field.value === 0) {
         return;
     }
-    var padMode = TraktorS2MK2.currentPadMode[field.group];
+    const padMode = TraktorS2MK2.currentPadMode[field.group];
     if (padMode !== TraktorS2MK2.padModes.introOutro) {
         TraktorS2MK2.setPadMode(field.group, TraktorS2MK2.padModes.introOutro);
         TraktorS2MK2.controller.setOutput(field.group, "!flux_button", ButtonBrightnessOn, false);
@@ -934,12 +934,12 @@ TraktorS2MK2.introOutroModeButton = function(field) {
 };
 
 TraktorS2MK2.loopInButton = function(field) {
-    var group = field.id.split(".")[0];
+    const group = field.id.split(".")[0];
     engine.setValue(group, "loop_in", field.value);
 };
 
 TraktorS2MK2.loopOutButton = function(field) {
-    var group = field.id.split(".")[0];
+    const group = field.id.split(".")[0];
     engine.setValue(group, "loop_out", field.value);
 };
 
@@ -949,8 +949,8 @@ TraktorS2MK2.connectEffectButtonLEDs = function(effectUnitGroup) {
         connection.disconnect();
     });
 
-    var focusedEffect = engine.getValue(effectUnitGroup, "focused_effect");
-    var makeButtonLEDcallback = function(effectNumber) {
+    const focusedEffect = engine.getValue(effectUnitGroup, "focused_effect");
+    const makeButtonLEDcallback = function(effectNumber) {
         return function(value, _group, _control) {
             TraktorS2MK2.controller.setOutput(effectUnitGroup, "!effectbutton" + effectNumber,
                 value === 1 ? ButtonBrightnessOn : ButtonBrightnessOff, !TraktorS2MK2.batchingLEDUpdate);
@@ -959,7 +959,7 @@ TraktorS2MK2.connectEffectButtonLEDs = function(effectUnitGroup) {
 
     // FIXME: Why do the LEDs flicker?
     TraktorS2MK2.batchingLEDUpdate = true;
-    for (var i = 0; i <= 2; i++) {
+    for (let i = 0; i <= 2; i++) {
         var effectGroup;
         var key;
         if (focusedEffect === 0) {
@@ -1000,7 +1000,7 @@ TraktorS2MK2.onFocusedEffectChange = function(value, group, _control) {
     if (value === 0) {
         for (var i = 1; i <= 2; i++) {
             // The previously focused effect is not available here, so iterate over all effects' parameter knobs.
-            for (var j = 1; j < 3; j++) {
+            for (let j = 1; j < 3; j++) {
                 engine.softTakeoverIgnoreNextValue(group.slice(0, -1) + "_Effect" + i + "]", "parameter" + j);
             }
         }
@@ -1013,9 +1013,9 @@ TraktorS2MK2.onFocusedEffectChange = function(value, group, _control) {
 
 // Refer to https://github.com/mixxxdj/mixxx/wiki/standard-effects-mapping for how to use this.
 TraktorS2MK2.effectFocusButton = function(field) {
-    var showParameters = engine.getValue(field.group, "show_parameters");
+    const showParameters = engine.getValue(field.group, "show_parameters");
     if (field.value > 0) {
-        var effectUnitNumber = field.group.slice(-2, -1);
+        const effectUnitNumber = field.group.slice(-2, -1);
         if (TraktorS2MK2.shiftPressed["[Channel" + effectUnitNumber + "]"]) {
             engine.setValue(field.group, "load_preset", 1);
             return;
@@ -1025,14 +1025,14 @@ TraktorS2MK2.effectFocusButton = function(field) {
             TraktorS2MK2.effectButtonLEDconnections[field.group].forEach(function(connection) {
                 connection.disconnect();
             });
-            var makeButtonLEDcallback = function(buttonNumber) {
+            const makeButtonLEDcallback = function(buttonNumber) {
                 return function(value, group, _control) {
                     TraktorS2MK2.controller.setOutput(group, "!effectbutton" + buttonNumber,
                         value === buttonNumber ? ButtonBrightnessOn : ButtonBrightnessOff, !TraktorS2MK2.batchingLEDUpdate);
                 };
             };
             TraktorS2MK2.batchingLEDUpdate = true;
-            for (var i = 0; i <= 2; i++) {
+            for (let i = 0; i <= 2; i++) {
                 TraktorS2MK2.effectButtonLEDconnections[i] = engine.makeConnection(
                     field.group, "focused_effect", makeButtonLEDcallback(i+1));
                 TraktorS2MK2.effectButtonLEDconnections[i].trigger();
@@ -1063,9 +1063,9 @@ TraktorS2MK2.effectFocusButton = function(field) {
 
 // Refer to https://github.com/mixxxdj/mixxx/wiki/standard-effects-mapping for how to use this.
 TraktorS2MK2.effectKnob = function(field) {
-    var knobNumber = parseInt(field.id.slice(-1));
-    var effectUnitGroup = field.group;
-    var focusedEffect = engine.getValue(effectUnitGroup, "focused_effect");
+    const knobNumber = parseInt(field.id.slice(-1));
+    const effectUnitGroup = field.group;
+    const focusedEffect = engine.getValue(effectUnitGroup, "focused_effect");
     if (focusedEffect > 0) {
         engine.setParameter(effectUnitGroup.slice(0, -1) + "_Effect" + focusedEffect + "]",
             "parameter" + knobNumber,
@@ -1079,14 +1079,14 @@ TraktorS2MK2.effectKnob = function(field) {
 
 // Refer to https://github.com/mixxxdj/mixxx/wiki/standard-effects-mapping for how to use this.
 TraktorS2MK2.effectButton = function(field) {
-    var buttonNumber = parseInt(field.id.slice(-1));
-    var effectUnitGroup = field.group;
-    var effectUnitNumber = field.group.match(script.effectUnitRegEx)[1];
-    var focusedEffect = engine.getValue(effectUnitGroup, "focused_effect");
+    const buttonNumber = parseInt(field.id.slice(-1));
+    const effectUnitGroup = field.group;
+    const effectUnitNumber = field.group.match(script.effectUnitRegEx)[1];
+    const focusedEffect = engine.getValue(effectUnitGroup, "focused_effect");
 
-    var toggle = function() {
-        var group;
-        var key;
+    const toggle = function() {
+        let group;
+        let key;
         if (focusedEffect === 0) {
             group = effectUnitGroup.slice(0, -1) + "_Effect" + buttonNumber + "]";
             key = "enabled";
@@ -1133,9 +1133,9 @@ TraktorS2MK2.effectButton = function(field) {
 /// return value 1 === right turn
 /// return value -1 === left turn
 TraktorS2MK2.encoderDirection = function(newValue, oldValue) {
-    var direction = 0;
-    var min = 0;
-    var max = 15;
+    let direction = 0;
+    const min = 0;
+    const max = 15;
     if (oldValue === max && newValue === min) {
         direction = 1;
     } else if (oldValue === min && newValue === max) {
@@ -1149,18 +1149,18 @@ TraktorS2MK2.encoderDirection = function(newValue, oldValue) {
 };
 
 TraktorS2MK2.topEncoder = function(field) {
-    var delta = 0.03333 * TraktorS2MK2.encoderDirection(field.value, TraktorS2MK2.previousPregain[field.group]);
+    const delta = 0.03333 * TraktorS2MK2.encoderDirection(field.value, TraktorS2MK2.previousPregain[field.group]);
     TraktorS2MK2.previousPregain[field.group] = field.value;
 
     if (TraktorS2MK2.shiftPressed[field.group]) {
-        var currentPregain = engine.getParameter(field.group, "pregain");
+        const currentPregain = engine.getParameter(field.group, "pregain");
         engine.setParameter(field.group, "pregain", currentPregain + delta);
     } else {
-        var quickEffectGroup = "[QuickEffectRack1_" + field.group + "]";
+        const quickEffectGroup = "[QuickEffectRack1_" + field.group + "]";
         if (TraktorS2MK2.topEncoderPressed[field.group]) {
             script.triggerControl(quickEffectGroup, delta > 0 ? "next_chain" : "prev_chain");
         } else {
-            var currentQuickEffectSuperKnob = engine.getParameter(quickEffectGroup, "super1");
+            const currentQuickEffectSuperKnob = engine.getParameter(quickEffectGroup, "super1");
             engine.setParameter(quickEffectGroup, "super1", currentQuickEffectSuperKnob + delta);
         }
     }
@@ -1180,9 +1180,9 @@ TraktorS2MK2.topEncoderPress = function(field) {
 };
 
 TraktorS2MK2.leftEncoder = function(field) {
-    var split = field.id.split(".");
-    var group = split[0];
-    var delta = TraktorS2MK2.encoderDirection(field.value, TraktorS2MK2.previousLeftEncoder[group]);
+    const split = field.id.split(".");
+    const group = split[0];
+    const delta = TraktorS2MK2.encoderDirection(field.value, TraktorS2MK2.previousLeftEncoder[group]);
     TraktorS2MK2.previousLeftEncoder[group] = field.value;
 
     if (TraktorS2MK2.shiftPressed[group]) {
@@ -1193,7 +1193,7 @@ TraktorS2MK2.leftEncoder = function(field) {
         }
     } else {
         if (TraktorS2MK2.leftEncoderPressed[group]) {
-            var beatjumpSize = engine.getValue(group, "beatjump_size");
+            let beatjumpSize = engine.getValue(group, "beatjump_size");
             if (delta === 1) {
                 beatjumpSize *= 2;
             } else {
@@ -1211,8 +1211,8 @@ TraktorS2MK2.leftEncoder = function(field) {
 };
 
 TraktorS2MK2.leftEncoderPress = function(field) {
-    var split = field.id.split(".");
-    var group = split[0];
+    const split = field.id.split(".");
+    const group = split[0];
     TraktorS2MK2.leftEncoderPressed[group] = (field.value > 0);
     if (TraktorS2MK2.shiftPressed[group] && field.value > 0) {
         script.triggerControl(group, "pitch_adjust_set_default");
@@ -1220,9 +1220,9 @@ TraktorS2MK2.leftEncoderPress = function(field) {
 };
 
 TraktorS2MK2.rightEncoder = function(field) {
-    var split = field.id.split(".");
-    var group = split[0];
-    var delta = TraktorS2MK2.encoderDirection(field.value, TraktorS2MK2.previousRightEncoder[group]);
+    const split = field.id.split(".");
+    const group = split[0];
+    const delta = TraktorS2MK2.encoderDirection(field.value, TraktorS2MK2.previousRightEncoder[group]);
     TraktorS2MK2.previousRightEncoder[group] = field.value;
 
     if (TraktorS2MK2.shiftPressed[group]) {
@@ -1244,9 +1244,9 @@ TraktorS2MK2.rightEncoderPress = function(field) {
     if (field.value === 0) {
         return;
     }
-    var split = field.id.split(".");
-    var group = split[0];
-    var loopEnabled = engine.getValue(group, "loop_enabled");
+    const split = field.id.split(".");
+    const group = split[0];
+    const loopEnabled = engine.getValue(group, "loop_enabled");
     // The actions triggered below change the state of loop_enabled,
     // so to simplify the logic, use script.triggerControl to only act
     // on press rather than resetting ControlObjects to 0 on release.
@@ -1266,7 +1266,7 @@ TraktorS2MK2.rightEncoderPress = function(field) {
 };
 
 TraktorS2MK2.browseEncoder = function(field) {
-    var delta = TraktorS2MK2.encoderDirection(field.value, TraktorS2MK2.previousBrowse);
+    let delta = TraktorS2MK2.encoderDirection(field.value, TraktorS2MK2.previousBrowse);
     TraktorS2MK2.previousBrowse = field.value;
 
     if (TraktorS2MK2.shiftPressed["[Channel1]"] || TraktorS2MK2.shiftPressed["[Channel2]"]) {
@@ -1292,7 +1292,7 @@ TraktorS2MK2.scalerSlider = function(group, name, value) {
 };
 
 TraktorS2MK2.outputChannelCallback = function(value, group, key) {
-    var ledValue = 0x05;
+    let ledValue = 0x05;
     if (value) {
         ledValue = 0x7F;
     }
@@ -1300,7 +1300,7 @@ TraktorS2MK2.outputChannelCallback = function(value, group, key) {
 };
 
 TraktorS2MK2.outputChannelCallbackDark = function(value, group, key) {
-    var ledValue = 0x00;
+    let ledValue = 0x00;
     if (value) {
         ledValue = 0x7F;
     }
@@ -1308,7 +1308,7 @@ TraktorS2MK2.outputChannelCallbackDark = function(value, group, key) {
 };
 
 TraktorS2MK2.outputCallback = function(value, group, key) {
-    var ledValue = ButtonBrightnessOff;
+    let ledValue = ButtonBrightnessOff;
     if (value) {
         ledValue = 0x7F;
     }
@@ -1316,7 +1316,7 @@ TraktorS2MK2.outputCallback = function(value, group, key) {
 };
 
 TraktorS2MK2.outputCallbackLoop = function(value, group, key) {
-    var ledValue = ButtonBrightnessOff;
+    let ledValue = ButtonBrightnessOff;
     if (engine.getValue(group, "loop_enabled")) {
         ledValue = 0x7F;
     }
@@ -1324,7 +1324,7 @@ TraktorS2MK2.outputCallbackLoop = function(value, group, key) {
 };
 
 TraktorS2MK2.outputCallbackDark = function(value, group, key) {
-    var ledValue = 0x00;
+    let ledValue = 0x00;
     if (value) {
         ledValue = 0x7F;
     }
@@ -1342,11 +1342,11 @@ TraktorS2MK2.pflButton = function(field) {
 };
 
 TraktorS2MK2.sendPadColor = function(group, padNumber, color) {
-    var padKey = "!pad_" + padNumber + "_";
-    var ColorBrightnessScaler = ButtonBrightnessOn / 0x7f;
-    var red = color.red * ColorBrightnessScaler;
-    var green = color.green * ColorBrightnessScaler;
-    var blue = color.blue * ColorBrightnessScaler;
+    const padKey = "!pad_" + padNumber + "_";
+    const ColorBrightnessScaler = ButtonBrightnessOn / 0x7f;
+    let red = color.red * ColorBrightnessScaler;
+    let green = color.green * ColorBrightnessScaler;
+    let blue = color.blue * ColorBrightnessScaler;
     if (color.red === 0 && color.green === 0 && color.blue === 0) {
         red = ButtonBrightnessOff;
         green = ButtonBrightnessOff;
@@ -1358,8 +1358,8 @@ TraktorS2MK2.sendPadColor = function(group, padNumber, color) {
 };
 
 TraktorS2MK2.outputHotcueCallback = function(value, group, key) {
-    var hotcueNumber = key.charAt(7);
-    var color;
+    const hotcueNumber = key.charAt(7);
+    let color;
     if (engine.getValue(group, "hotcue_" + hotcueNumber + "_enabled")) {
         color = colorCodeToObject(engine.getValue(group, "hotcue_" + hotcueNumber + "_color"));
         // hotcue_X_color reports red, green, and blue on a 0-255 scale, but the controller LEDs
@@ -1377,14 +1377,14 @@ TraktorS2MK2.onVuMeterChanged = function(value, group, _key) {
     // This handler is called a lot so it should be as fast as possible.
 
     // Figure out number of fully-illuminated segments.
-    var scaledValue = value * 4.0;
-    var fullIllumCount = Math.floor(scaledValue);
+    const scaledValue = value * 4.0;
+    const fullIllumCount = Math.floor(scaledValue);
 
     // Figure out how much the partially-illuminated segment is illuminated.
-    var partialIllum = (scaledValue - fullIllumCount) * 0x7F;
+    const partialIllum = (scaledValue - fullIllumCount) * 0x7F;
 
-    for (var i = 0; i <= 3; i++) {
-        var key = "!VuMeter" + i;
+    for (let i = 0; i <= 3; i++) {
+        const key = "!VuMeter" + i;
         if (i < fullIllumCount) {
             // Don't update lights until they're all done, so the last term is false.
             TraktorS2MK2.controller.setOutput(group, key, 0x7F, false);
@@ -1394,7 +1394,7 @@ TraktorS2MK2.onVuMeterChanged = function(value, group, _key) {
             TraktorS2MK2.controller.setOutput(group, key, 0x00, false);
         }
     }
-    TraktorS2MK2.controller.OutputPackets["outputTop"].send();
+    TraktorS2MK2.controller.OutputPackets.outputTop.send();
 };
 
 TraktorS2MK2.onLoopEnabledChanged = function(value, group, _key) {

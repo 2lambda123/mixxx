@@ -1,7 +1,10 @@
 var MidiFighterTwister = {
     init: function() {
-        var cc = 0xB0;
+        const cc = 0xB0;
 
+        /**
+         * @param value
+         */
         function linearize(value) {
             return Math.pow(value / 4, 0.5) * 127;
         }
@@ -14,7 +17,7 @@ var MidiFighterTwister = {
                 midi.sendShortMsg(cc, 0x07, (value + 1) / 2 * 127);
             }),
             engine.makeConnection("[Master]", "crossfader", function(value) {
-                var scaled = (value + 1) / 2 * 127;
+                const scaled = (value + 1) / 2 * 127;
                 midi.sendShortMsg(cc, 0x0C, scaled);
             }),
             engine.makeConnection("[Channel1]", "pregain", function(value) {
@@ -66,20 +69,20 @@ var MidiFighterTwister = {
         ];
 
         // Initialize Twister's LED
-        for (var i = 0; i < MidiFighterTwister.connections.length; i++) {
+        for (let i = 0; i < MidiFighterTwister.connections.length; i++) {
             MidiFighterTwister.connections[i].trigger();
         }
 
         // Initialize BPM LED
-        midi.sendShortMsg(cc, 0x00, 64)
-        midi.sendShortMsg(cc, 0x03, 64)
+        midi.sendShortMsg(cc, 0x00, 64);
+        midi.sendShortMsg(cc, 0x03, 64);
     },
     shutdown: function() {
-        for (var i = 0; i < MidiFighterTwister.connections.length; i++) {
+        for (let i = 0; i < MidiFighterTwister.connections.length; i++) {
             MidiFighterTwister.connections[i].disconnect();
         }
     },
     resetSuperKnob: function(channel, control, value, status, group) {
         engine.setValue(group, "super1", 0.5);
     },
-}
+};
