@@ -12,7 +12,7 @@
  * TODO:
  * Pitch range
  *
- **/
+ */
 
 var DJC4 = {};
 
@@ -78,7 +78,7 @@ DJC4.leds = {
 
 // Called when the MIDI device is opened & set up.
 DJC4.init = function() {
-    var i;
+    let i;
 
     // Put all LEDs to default state.
     DJC4.allLed2Default();
@@ -197,7 +197,7 @@ DJC4.Deck = function(deckNumber) {
     });
 
     this.samplerButtons = [];
-    for (var i = 0; i <= 3; i++) {
+    for (let i = 0; i <= 3; i++) {
         this.samplerButtons[i] = new components.SamplerButton({
             number: (deckNumber === 1 || deckNumber === 3) ? (i + 1) : (i + 5),
             midi: [0x90+deckNumber-1, 0x0C+i],
@@ -230,7 +230,7 @@ DJC4.Deck = function(deckNumber) {
         if (value === 0x7F) {
             // Toggle setting
             this.scratchMode = !this.scratchMode;
-            DJC4.setLed(script.deckFromGroup(this.currentDeck), DJC4.leds["scratch"], this.scratchMode);
+            DJC4.setLed(script.deckFromGroup(this.currentDeck), DJC4.leds.scratch, this.scratchMode);
         }
     };
 
@@ -267,17 +267,17 @@ DJC4.Deck = function(deckNumber) {
         // When the jog wheel is turned in clockwise direction, value is
         // greater than 64 (= 0x40). If it's turned in counter-clockwise
         // direction, the value is smaller than 64.
-        var newValue = value - 64;
-        var deck = script.deckFromGroup(this.currentDeck);
+        const newValue = value - 64;
+        const deck = script.deckFromGroup(this.currentDeck);
         if (engine.isScratching(deck)) {
             engine.scratchTick(deck, newValue); // Scratch!
         } else if (this.shifted === true) { // If shift is pressed
-            var oldPos = engine.getValue(this.currentDeck, "playposition");
+            const oldPos = engine.getValue(this.currentDeck, "playposition");
             // Since ‘playposition’ is normalized to unity, we need to scale by
             // song duration in order for the jog wheel to cover the same amount
             // of time given a constant turning angle.
-            var duration = engine.getValue(this.currentDeck, "duration");
-            var newPos = Math.max(0, oldPos + (newValue * DJC4.stripSearchScaling / duration));
+            const duration = engine.getValue(this.currentDeck, "duration");
+            const newPos = Math.max(0, oldPos + (newValue * DJC4.stripSearchScaling / duration));
             engine.setValue(this.currentDeck, "playposition", newPos); // Strip search
         } else {
             engine.setValue(this.currentDeck, "jog", newValue); // Pitch bend
@@ -289,9 +289,9 @@ DJC4.Deck = function(deckNumber) {
 
 DJC4.allLed2Default = function() {
     // All LEDs OFF for deck 1 to 4
-    var i = 0;
+    let i = 0;
     for (i = 1; i <= 4; i++) {
-        for (var led in DJC4.leds) {
+        for (const led in DJC4.leds) {
             DJC4.setLed(i, DJC4.leds[led], 0);
         }
         // Channel VU meter
@@ -304,7 +304,7 @@ DJC4.allLed2Default = function() {
 
 // Set leds function
 DJC4.setLed = function(deck, led, status) {
-    var ledStatus = 0x00; // Default OFF
+    let ledStatus = 0x00; // Default OFF
     switch (status) {
     case 0:
         ledStatus = 0x00;
@@ -327,7 +327,7 @@ DJC4.setLed = function(deck, led, status) {
 // === MISC COMMON ===
 
 DJC4.autoShowDecks = function() {
-    var anyLoaded = engine.getValue("[Channel3]", "track_loaded") || engine.getValue("[Channel4]", "track_loaded");
+    const anyLoaded = engine.getValue("[Channel3]", "track_loaded") || engine.getValue("[Channel4]", "track_loaded");
     if (!DJC4.autoShowFourDecks) {
         return;
     }
@@ -335,7 +335,7 @@ DJC4.autoShowDecks = function() {
 };
 
 DJC4.shiftButton = function(channel, control, value) {
-    var i;
+    let i;
     if (value === 0x7F) {
         DJC4.browseEncoder.shift();
         for (i = 0; i < 4; i++) {
@@ -367,7 +367,7 @@ DJC4.samplerVolume = function(channel, control, value) {
     engine.setValue("[SamplerRow1]", "expanded", true);
 
     // control up to 8 sampler volumes with the one knob on the mixer
-    for (var i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 8; i++) {
         engine.setValue("[Sampler" + i + "]", "pregain",
             script.absoluteNonLin(value, 0, 1.0, 4.0));
     }

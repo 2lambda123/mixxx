@@ -39,7 +39,7 @@ var dryWetKnobAsPregain = false;
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-**/
+ */
 var P32 = {};
 
 P32.init = function() {
@@ -59,8 +59,8 @@ P32.init = function() {
 };
 
 P32.shutdown = function() {
-    for (var channel = 0; channel <= 5; channel++) {
-        for (var button = 1; button <= 0x63; button++) {
+    for (let channel = 0; channel <= 5; channel++) {
+        for (let button = 1; button <= 0x63; button++) {
             midi.sendShortMsg(0x90 + channel, button, 0);
         }
     }
@@ -81,7 +81,7 @@ P32.PadNumToMIDIControl = function(PadNum, layer) {
     // this returns the MIDI control numbers for the pads numbered top to bottom
     // layer argument is the 0-indexed pad mode, from bottom (sampler) to top (hotcue)
     PadNum -= 1;
-    var midiRow = 3 - Math.floor(PadNum/4);
+    const midiRow = 3 - Math.floor(PadNum/4);
     return 0x24 + 16 * layer + midiRow*4 + PadNum%4;
 };
 
@@ -94,7 +94,7 @@ P32.browseEncoder = function(_channel, _control, value, _status, _group) {
 };
 
 P32.headMixEncoder = function(_channel, _control, value, _status, _group) {
-    var direction = (value > 64) ? -1 : 1;
+    const direction = (value > 64) ? -1 : 1;
     engine.setValue("[Master]", "headMix", engine.getValue("[Master]", "headMix") + (0.1 * direction));
 };
 
@@ -134,22 +134,22 @@ P32.slipButton = new components.Button({
             if (this.pressedToToggleDeck && value === 0) {
                 this.pressedToToggleDeck = false;
             } else {
-                for (var i = 1; i <= 4; i++) {
+                for (let i = 1; i <= 4; i++) {
                     script.toggleControl("[Channel" + i + "]", "slip_enabled");
                 }
             }
         }
     },
     connect: function() {
-        for (var d = 1; d <= 4; d++) {
+        for (let d = 1; d <= 4; d++) {
             this.connections.push(
                 engine.connectControl("[Channel" + d + "]", "slip_enabled", this.output.bind(this))
             );
         }
     },
     output: function(_value, _group, _control) {
-        var slipEnabledOnAnyDeck = false;
-        for (var d = 1; d <= 4; d++) {
+        let slipEnabledOnAnyDeck = false;
+        for (let d = 1; d <= 4; d++) {
             if (engine.getValue("[Channel" + d + "]", "slip_enabled")) {
                 slipEnabledOnAnyDeck = true;
                 break;
@@ -165,7 +165,7 @@ P32.slipButton = new components.Button({
 P32.Deck = function(deckNumbers, channel) {
     components.Deck.call(this, deckNumbers);
 
-    var theDeck = this;
+    const theDeck = this;
 
     this.shiftButton = function(_channel, _control, value, _status, _group) {
         if (value === 127) {
@@ -191,7 +191,7 @@ P32.Deck = function(deckNumbers, channel) {
         midi: [0xB0 + channel, 0x1B],
         unshift: function() {
             this.input = function(_channel, _control, value, _status, _group) {
-                var loopSize = engine.getValue(this.group, "beatloop_size");
+                const loopSize = engine.getValue(this.group, "beatloop_size");
                 if (loopEnabledDot) {
                     if (value > 64 && loopSize > 2) { // turn left
                         // Unfortunately, there is no way to show 1 with a dot on the
@@ -219,7 +219,7 @@ P32.Deck = function(deckNumbers, channel) {
         },
         shift: function() {
             this.input = function(_channel, _control, value, _status, _group) {
-                var direction = (value > 64) ? "backward" : "forward";
+                const direction = (value > 64) ? "backward" : "forward";
                 script.triggerControl(this.group, "beatjump_1_" + direction);
             };
         },
@@ -230,8 +230,8 @@ P32.Deck = function(deckNumbers, channel) {
             }
         },
         output: function(_value, _group, _control) {
-            var loopSize = engine.getValue(this.group, "beatloop_size");
-            var loopSizeLogBase2 = Math.log(loopSize) / Math.log(2);
+            const loopSize = engine.getValue(this.group, "beatloop_size");
+            const loopSizeLogBase2 = Math.log(loopSize) / Math.log(2);
             // test if loopSizeLogBase2 is an integer
             if (Math.floor(loopSizeLogBase2) === loopSizeLogBase2) {
                 if (loopEnabledDot && engine.getValue(this.group, "loop_enabled") === 1) {
@@ -293,8 +293,8 @@ P32.Deck = function(deckNumbers, channel) {
     });
 
     this.showBeatjumpSize = function() {
-        var beatjumpSize = engine.getValue(this.currentDeck, "beatjump_size");
-        var beatjumpSizeLogBase2 = Math.log(beatjumpSize) / Math.log(2);
+        const beatjumpSize = engine.getValue(this.currentDeck, "beatjump_size");
+        const beatjumpSizeLogBase2 = Math.log(beatjumpSize) / Math.log(2);
         // test if beatjumpSizeLogBase2 is an integer
         if (Math.floor(beatjumpSizeLogBase2) === beatjumpSizeLogBase2) {
             midi.sendShortMsg(0xB0 + channel, 0x1B,
@@ -307,14 +307,14 @@ P32.Deck = function(deckNumbers, channel) {
     this.tempoAndBeatjumpEncoder = new components.Encoder({
         unshift: function() {
             this.input = function(_channel, _control, value, _status, _group) {
-                var direction = (value > 64) ? -1 : 1;
+                const direction = (value > 64) ? -1 : 1;
                 engine.setValue(this.group, "rate",
                     engine.getValue(this.group, "rate") + (0.01 * direction));
             };
         },
         shift: function() {
             this.input = function(_channel, _control, value, _status, _group) {
-                var beatJumpSize = engine.getValue(this.group, "beatjump_size");
+                let beatJumpSize = engine.getValue(this.group, "beatjump_size");
                 if (theDeck.beatJumpEncoderPressed) {
                     if (value > 64 && beatJumpSize > 1/32) { // turn left
                         beatJumpSize /= 2;
@@ -327,7 +327,7 @@ P32.Deck = function(deckNumbers, channel) {
                     engine.setValue(this.group, "beatjump_size", beatJumpSize);
                     theDeck.showBeatjumpSize();
                 } else {
-                    var direction = (value > 64) ? "backward" : "forward";
+                    const direction = (value > 64) ? "backward" : "forward";
                     script.triggerControl(this.group, "beatjump_" + direction);
                 }
             };
@@ -399,7 +399,7 @@ P32.Deck = function(deckNumbers, channel) {
     // ================================ PAD GRID ====================================
     this.hotcueButton = [];
     this.samplerButton = [];
-    for (var i = 1; i <= 16; i++) {
+    for (let i = 1; i <= 16; i++) {
         this.hotcueButton[i] = new components.HotcueButton({
             midi: [
                 0x90 + channel,
@@ -409,10 +409,10 @@ P32.Deck = function(deckNumbers, channel) {
             on: P32.padColors.red
         });
 
-        var row = Math.ceil(i/4);
-        var column = ((i-1) % 4) + 1;
-        var padGrid = channel - 1;
-        var samplerNumber = (8 * (row-1)) + (column) + (padGrid * 4);
+        const row = Math.ceil(i/4);
+        const column = ((i-1) % 4) + 1;
+        const padGrid = channel - 1;
+        const samplerNumber = (8 * (row-1)) + (column) + (padGrid * 4);
         this.samplerButton[samplerNumber] = new components.SamplerButton({
             midi: [0x90 + channel, P32.PadNumToMIDIControl(i, 0)],
             number: samplerNumber,
@@ -521,7 +521,7 @@ P32.Deck = function(deckNumbers, channel) {
 
     // =============================== MIXER ====================================
     this.eqKnob = [];
-    for (var k = 1; k <= 3; k++) {
+    for (let k = 1; k <= 3; k++) {
         this.eqKnob[k] = new components.Pot({
             midi: [0xB0 + channel, 0x02 + k],
             group: "[EqualizerRack1_" + this.currentDeck + "_Effect1]",

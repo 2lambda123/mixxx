@@ -1,13 +1,15 @@
 /**
  * Additional JS components for Mixxx
+ *
+ * @param global
  */
 (function(global) {
 
     /** @private */
-    var components = global.components;
+    const components = global.components;
 
     /** @private */
-    var engine = global.engine;
+    const engine = global.engine;
 
     /**
      * Contains functions to print a message to the log.
@@ -16,7 +18,7 @@
      * @param {string} message Message
      * @private
      */
-    var log = {
+    const log = {
         debug: function(message) {
             if (this.debug) {
                 print("[DEBUG] " + message);
@@ -34,10 +36,10 @@
      * Determine an ID from a component's MIDI address
      *
      * @param {Array<number>} midiAddress MIDI address consisting of two integers
-     * @return {string} ID for the MIDI address; `undefined` on error
+     * @returns {string} ID for the MIDI address; `undefined` on error
      * @private
      */
-    var findComponentId = function(midiAddress) {
+    const findComponentId = function(midiAddress) {
         if (Array.isArray(midiAddress) && midiAddress.length === 2
                 && typeof midiAddress[0] === "number"  && typeof midiAddress[1] === "number") {
             return "[" + midiAddress.map(function(x) {
@@ -51,17 +53,17 @@
      * Create a human-readable string to identify a component.
      *
      * @param {components.Component} component A component
-     * @return {string} A short string that describes the component; `undefined` on error
+     * @returns {string} A short string that describes the component; `undefined` on error
      * @private
      */
-    var stringifyComponent = function(component) {
+    const stringifyComponent = function(component) {
         if (!component) {
             return;
         }
-        var key = component.inKey || component.outKey;
-        var value = component.group + "," + key;
+        const key = component.inKey || component.outKey;
+        let value = component.group + "," + key;
         if (component.midi) {
-            var id = findComponentId(component.midi);
+            const id = findComponentId(component.midi);
             if (id !== undefined) {
                 value = id + ": " + value;
             }
@@ -75,7 +77,7 @@
      * @param {number} value A number between 0 and 1.
      * @private
      */
-    var convertToMidiValue = function(value) {
+    const convertToMidiValue = function(value) {
         /*
          * Math.round() is important to keep input and output in sync.
          * Example:
@@ -90,24 +92,24 @@
     /**
      * Derive a prototype from a parent.
      *
-     * @param {object} parent Constructor of parent whose prototype is used as base
-     * @param {object} members Own members that are not inherited
-     * @return {object} A new prototype based on parent with the given members
+     * @param {Object} parent Constructor of parent whose prototype is used as base
+     * @param {Object} members Own members that are not inherited
+     * @returns {Object} A new prototype based on parent with the given members
      * @private
      */
-    var deriveFrom = function(parent, members) {
+    const deriveFrom = function(parent, members) {
         return _.merge(Object.create(parent.prototype), members || {});
     };
 
     /**
      * Perform an action, throttled if the owner supports throttling.
      *
-     * @param {function} action The action to perform
-     * @param {object} owner Object used as `this` for the action
+     * @param {Function} action The action to perform
+     * @param {Object} owner Object used as `this` for the action
      * @private
      * @see `Throttler`
      */
-    var throttle = function(action, owner) {
+    const throttle = function(action, owner) {
         if (owner.throttler) {
             owner.throttler.schedule(action, owner);
         } else {
@@ -118,12 +120,12 @@
     /**
      * A component that uses the parameter instead of the value as output.
      *
-     * @constructor
-     * @extends {components.Component}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Component}
+     * @param {Object} options Options object
      * @public
      */
-    var ParameterComponent = function(options) {
+    const ParameterComponent = function(options) {
         components.Component.call(this, options);
     };
     ParameterComponent.prototype = deriveFrom(components.Component, {
@@ -139,13 +141,13 @@
     /**
      * A button to toggle un-/shift on a target component.
      *
-     * @constructor
-     * @extends {components.Button}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Button}
+     * @param {Object} options Options object
      * @param {components.Component|components.ComponentContainer} options.target Target component
      * @public
      */
-    var ShiftButton = function(options) {
+    const ShiftButton = function(options) {
         components.Button.call(this, options);
     };
     ShiftButton.prototype = deriveFrom(components.Button, {
@@ -162,12 +164,12 @@
     /**
      * A component that handles every incoming value.
      *
-     * @constructor
-     * @extends {components.Component}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Component}
+     * @param {Object} options Options object
      * @public
      */
-    var Trigger = function(options) {
+    const Trigger = function(options) {
         components.Component.call(this, options);
     };
     Trigger.prototype = deriveFrom(components.Component, {
@@ -177,13 +179,14 @@
     /**
      * A button with configurable Mixxx control values for `on` and `off`.
      *
-     * @constructor
-     * @extends {components.Button}
+     * @function Object() { [native code] }
+     * @augments {components.Button}
+     * @param options
      * @param {number} options.onValue Value for `on`; optional, default: `1`
      * @param {number} options.offValue Value for `off`; optional, default: opposite of `onValue`
      * @public
      */
-    var CustomButton = function(options) {
+    const CustomButton = function(options) {
         options = options || {};
         if (options.onValue === undefined) { // do not use '||' to allow 0
             options.onValue = 1;
@@ -221,16 +224,17 @@
      * An object that simplifies using a timer safely.
      * Use `start(action)` to start and `reset()` to reset.
      *
-     * @constructor
+     * @function Object() { [native code] }
      * @param {number} options.timeout Duration between start and action (in ms)
      * @param {boolean} options.oneShot If `true`, the action is run once;
      *                          otherwise, it is run periodically until the timer is reset.
-     * @param {function} options.action Function that is executed whenever the timer expires
-     * @param {object} options.owner Owner object of the `action` function (assigned to `this`)
+     * @param {Function} options.action Function that is executed whenever the timer expires
+     * @param options
+     * @param {Object} options.owner Owner object of the `action` function (assigned to `this`)
      * @public
      * @see https://github.com/mixxxdj/mixxx/wiki/Script-Timers
      */
-    var Timer = function(options) {
+    const Timer = function(options) {
         _.assign(this, options);
         this.disable();
     };
@@ -239,7 +243,7 @@
         isEnabled: function() { return this.id !== 0; },
         start: function() {
             this.reset();
-            var timer = this;
+            const timer = this;
             this.id = engine.beginTimer(this.timeout, function() {
                 if (timer.oneShot) {
                     timer.disable();
@@ -268,11 +272,12 @@
      * Use `schedule(action, owner)` to perform an action on the owner as soon as the delay has
      * elapsed after the preceding action has finished.
      *
-     * @constructor
+     * @function Object() { [native code] }
+     * @param options
      * @param {number} options.delay Minimal delay between two consecutive actions (in ms)
      * @public
      */
-    var Throttler = function(options) {
+    const Throttler = function(options) {
         options = options || {};
         options.delay = options.delay || 0;
         _.assign(this, options);
@@ -289,14 +294,14 @@
 
         notify: function() {
             if (this.jobs.length > 0 && this.acquireLock()) {
-                var job = this.jobs.shift();
+                const job = this.jobs.shift();
                 job.action.call(job.owner);
                 this.unlockTimer.start();
             }
         },
 
         acquireLock: function() {
-            var unlocked = !this.locked;
+            const unlocked = !this.locked;
             if (unlocked) {
                 this.locked = true;
             }
@@ -312,14 +317,14 @@
     /**
      * A button that supports different actions on short and long press.
      *
-     * @constructor
-     * @extends {components.Button}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Button}
+     * @param {Object} options Options object
      * @public
      */
-    var LongPressButton = function(options) {
+    const LongPressButton = function(options) {
         components.Button.call(this, options);
-        var action = function() {
+        const action = function() {
             this.isLongPressed = true;
             this.onLongPress();
         };
@@ -352,14 +357,15 @@
     /**
      * A button that blinks when `on`.
      *
-     * @constructor
-     * @extends {components.Button}
+     * @function Object() { [native code] }
+     * @param options
+     * @augments {components.Button}
      * @param {number} options.blinkDuration Blink duration in ms; optional, default: 500
      * @public
      */
-    var BlinkingButton = function(options) {
+    const BlinkingButton = function(options) {
         options = options || {};
-        var blinkAction = function() {
+        const blinkAction = function() {
             this.send(components.Button.prototype.outValueScale.call(
                 this, this.flashing = !this.flashing));
         };
@@ -389,19 +395,19 @@
      * This allows the user to continue adjusting the Mixxx Control after
      * the encoder has reached the end of its physical range.
      *
-     * @constructor
-     * @extends {components.Encoder}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Encoder}
+     * @param {Object} options Options object
      * @public
      */
-    var DirectionEncoder = function(options) {
+    const DirectionEncoder = function(options) {
         components.Encoder.call(this, options);
         this.previousValue = this.inGetValue(); // available only after call of Encoder constructor
     };
     DirectionEncoder.prototype = deriveFrom(components.Encoder, {
         min: 0,
         inValueScale: function(value) {
-            var direction = 0;
+            let direction = 0;
             if (!(this.relative && this.isShifted)) {
                 if (value > this.previousValue || value === this.max) {
                     direction = 1;
@@ -423,19 +429,19 @@
     /**
      * An encoder for a value range of [-bound..0..+bound].
      *
-     * @constructor
-     * @extends {components.Encoder}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Encoder}
+     * @param {Object} options Options object
      * @param {number} options.bound A positive integer defining the range bounds
      * @public
      */
-    var RangeAwareEncoder = function(options) {
+    const RangeAwareEncoder = function(options) {
         components.Encoder.call(this, options);
     };
     RangeAwareEncoder.prototype = deriveFrom(components.Encoder, {
         outValueScale: function(value) {
             /* -bound..+bound => 0..1 */
-            var normalizedValue = (value + this.bound) / (2 * this.bound);
+            const normalizedValue = (value + this.bound) / (2 * this.bound);
             /* 0..1 => 0..127 */
             return convertToMidiValue.call(this, normalizedValue);
         },
@@ -444,13 +450,13 @@
     /**
      * A pot for a value range of [-bound..0..+bound].
      *
-     * @constructor
-     * @extends {components.Pot}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Pot}
+     * @param {Object} options Options object
      * @param {number} options.bound A positive integer defining the range bounds
      * @public
      */
-    var RangeAwarePot = function(options) {
+    const RangeAwarePot = function(options) {
         components.Pot.call(this, options);
     };
     RangeAwarePot.prototype = deriveFrom(components.Pot, {
@@ -463,14 +469,14 @@
      * The enumeration values may be defined either explicitly by an array
      * or implicitly by a `maxValue` so that the values are `[0..maxValue]`.
      *
-     * @constructor
-     * @extends {components.Button}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Button}
+     * @param {Object} options Options object
      * @param {Array} options.values An array of enumeration values
      * @param {number} options.maxValue A positive integer defining the maximum enumeration value
      * @public
      */
-    var EnumToggleButton = function(options) {
+    const EnumToggleButton = function(options) {
         options = options || {};
         if (options.maxValue === undefined && options.values === undefined) {
             log.error("An EnumToggleButton requires either `values` or a `maxValue`.");
@@ -484,9 +490,9 @@
     EnumToggleButton.prototype = deriveFrom(components.Button, {
         input: function(channel, control, value, status, _group) {
             if (this.isPress(channel, control, value, status)) {
-                var newValue;
+                let newValue;
                 if (this.values) {
-                    var index = this.values.indexOf(this.inGetValue());
+                    const index = this.values.indexOf(this.inGetValue());
                     newValue = this.values[(index + 1) % this.values.length];
                 } else {
                     newValue = (this.inGetValue() + 1) % (this.maxValue + 1);
@@ -499,15 +505,15 @@
     /**
      * An encoder for enumeration values.
      *
-     * @constructor
-     * @extends {components.Encoder}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Encoder}
+     * @param {Object} options Options object
      * @param {Array} options.values An array containing the enumeration values
      * @param {boolean} options.softTakeover (optional) Enable soft-takeover; default: `true`
      * @public
      * @see https://github.com/mixxxdj/mixxx/wiki/Midi-Scripting#soft-takeover
      */
-    var EnumEncoder = function(options) {
+    const EnumEncoder = function(options) {
         options = options || {};
         if (options.values === undefined) {
             log.error("EnumEncoder constructor was called without specifying enum values.");
@@ -521,7 +527,7 @@
     };
     EnumEncoder.prototype = deriveFrom(components.Encoder, {
         input: function(_channel, _control, value, _status, _group) {
-            var scaledValue = this.inValueScale(value);
+            const scaledValue = this.inValueScale(value);
             if (!this.softTakeover
                 || this.previousValue === undefined
                 || this.previousValue === this.inGetValue()) {
@@ -530,14 +536,14 @@
             this.previousValue = scaledValue;
         },
         inValueScale: function(value) {
-            var normalizedValue = value / this.max;
-            var index = Math.round(normalizedValue * this.maxIndex);
+            const normalizedValue = value / this.max;
+            const index = Math.round(normalizedValue * this.maxIndex);
             return this.values[index];
         },
         outValueScale: function(value) {
-            var index = this.values.indexOf(value);
+            const index = this.values.indexOf(value);
             if (index !== -1) {
-                var normalizedValue = index / this.maxIndex;
+                const normalizedValue = index / this.maxIndex;
                 return convertToMidiValue.call(this, normalizedValue);
             } else {
                 log.warn("'" + value + "' is not in supported values " + "[" + this.values + "]");
@@ -548,12 +554,12 @@
     /**
      * An EnumEncoder for a loop control that uses beat sizes as enumeration.
      *
-     * @constructor
-     * @extends {EnumEncoder}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {EnumEncoder}
+     * @param {Object} options Options object
      * @public
      */
-    var LoopEncoder = function(options) {
+    const LoopEncoder = function(options) {
         options = options || {};
         if (options.values === undefined) {
             /* taken from src/engine/controls/loopingcontrol.cpp */
@@ -571,14 +577,14 @@
      * move it backwards. The amount of movement may be given by either `size` or `sizeControl`,
      * `sizeControl` being preferred.
      *
-     * @constructor
-     * @extends {DirectionEncoder}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {DirectionEncoder}
+     * @param {Object} options Options object
      * @param {number} options.size (optional) Size given in number of beats; default: 0.5
      * @param {string} options.sizeControl (optional) Name of a control that contains `size`
      * @public
      */
-    var LoopMoveEncoder = function(options) {
+    const LoopMoveEncoder = function(options) {
         options = options || {};
         options.inKey = options.inKey || "loop_move";
         options.size = options.size || 0.5;
@@ -586,8 +592,8 @@
     };
     LoopMoveEncoder.prototype = deriveFrom(DirectionEncoder, {
         inValueScale: function(value) {
-            var direction = DirectionEncoder.prototype.inValueScale.call(this, value);
-            var beats = this.sizeControl
+            const direction = DirectionEncoder.prototype.inValueScale.call(this, value);
+            const beats = this.sizeControl
                 ? engine.getValue(this.group, this.sizeControl)
                 : this.size;
             return direction * beats;
@@ -597,23 +603,23 @@
     /**
      * A button that toggles a beatloop that ends at the current play position.
      *
-     * @constructor
-     * @extends {components.Button}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Button}
+     * @param {Object} options Options object
      * @public
      */
-    var BackLoopButton = function(options) {
+    const BackLoopButton = function(options) {
         options = options || {};
         options.key = options.key || "loop_enabled";
         components.Button.call(this, options);
     };
     BackLoopButton.prototype = deriveFrom(components.Button, {
         inSetValue: function(value) {
-            var script = global.script;
-            var group = this.group;
+            const script = global.script;
+            const group = this.group;
             if (value) {
-                var loopSize = engine.getValue(group, "beatloop_size");
-                var beatjumpSize = engine.getValue(group, "beatjump_size");
+                const loopSize = engine.getValue(group, "beatloop_size");
+                const beatjumpSize = engine.getValue(group, "beatjump_size");
                 engine.setValue(group, "beatjump_size", loopSize);
                 script.triggerControl(group, "beatjump_backward");
                 script.triggerControl(group, "beatloop_activate");
@@ -627,13 +633,14 @@
     /**
      * A pot for the crossfader curve.
      *
-     * @constructor
-     * @extends {components.Pot}
+     * @function Object() { [native code] }
+     * @augments {components.Pot}
+     * @param options
      * @param {number} options.mode Crossfader mode; optional, default: `0`.
      *                              (`0`: additive, `1`: constant)
      * @public
      */
-    var CrossfaderCurvePot = function(options) {
+    const CrossfaderCurvePot = function(options) {
         options = options || {};
         options.group = options.group || "[Mixer Profile]";
         if (options.mode) {
@@ -668,14 +675,14 @@
      * This component offers a `bind()` function that allows for re-binding to the source component
      * when its internal state changes.
      *
-     * @constructor
-     * @extends {components.Component}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Component}
+     * @param {Object} options Options object
      * @param {components.Component} options.source Source component whose values are sent to the
      *                                              controller
      * @public
      */
-    var Publisher = function(options) {
+    const Publisher = function(options) {
         if (options.source === undefined) {
             log.error("Missing source component");
             return;
@@ -702,16 +709,16 @@
         },
     });
 
-    var EffectUnit = function(rack, deckGroup) {
+    const EffectUnit = function(rack, deckGroup) {
         components.ComponentContainer.call(this);
-        var effectGroup = "[" + rack + "_" + deckGroup + "_Effect1]";
-        var channelGroup = "[" + rack + "_" + deckGroup + "]";
+        const effectGroup = "[" + rack + "_" + deckGroup + "_Effect1]";
+        const channelGroup = "[" + rack + "_" + deckGroup + "]";
 
-        var ParameterKnob = function(parameterNumber) {
+        const ParameterKnob = function(parameterNumber) {
             components.Pot.call(this, {group: effectGroup, key: "parameter" + parameterNumber});
         };
         ParameterKnob.prototype = deriveFrom(components.Pot);
-        var ParameterButton = function(parameterNumber) {
+        const ParameterButton = function(parameterNumber) {
             components.Button.call(this, {group: effectGroup, key: "button_parameter" + parameterNumber});
         };
         ParameterButton.prototype = deriveFrom(
@@ -724,14 +731,14 @@
         this.mix = new components.Pot({group: channelGroup, key: "mix"});
 
         this.parameterKnobs = new components.ComponentContainer();
-        var parameterKnobCount = engine.getValue(effectGroup, "num_parameters");
-        for (var knobIndex = 1; knobIndex <= parameterKnobCount; knobIndex++) {
+        const parameterKnobCount = engine.getValue(effectGroup, "num_parameters");
+        for (let knobIndex = 1; knobIndex <= parameterKnobCount; knobIndex++) {
             this.parameterKnobs[knobIndex] = new ParameterKnob(knobIndex);
         }
 
         this.parameterButtons = new components.ComponentContainer();
-        var parameterButtonCount = engine.getValue(effectGroup, "num_button_parameters");
-        for (var buttonIndex = 1; buttonIndex <= parameterButtonCount; buttonIndex++) {
+        const parameterButtonCount = engine.getValue(effectGroup, "num_button_parameters");
+        for (let buttonIndex = 1; buttonIndex <= parameterButtonCount; buttonIndex++) {
             this.parameterButtons[buttonIndex] = new ParameterButton(buttonIndex);
         }
     };
@@ -739,7 +746,6 @@
 
     /**
      * @typedef {components.ComponentContainer} EqualizerUnit
-     *
      * @property {components.Button} enabled En-/disable equalizer unit
      * @property {components.Pot} parameterKnobs.1 Low knob
      * @property {components.Pot} parameterKnobs.2 Mid knob
@@ -752,20 +758,19 @@
     /**
      * A component container for equalizer controls.
      *
-     * @constructor
-     * @extends {components.ComponentContainer}
+     * @function Object() { [native code] }
+     * @augments {components.ComponentContainer}
      * @param {string} deckGroup Group of the deck this unit belongs to (e.g. `[Channel1]`)
      * @yields {EqualizerUnit}
      * @public
      */
-    var EqualizerUnit = function(deckGroup) {
+    const EqualizerUnit = function(deckGroup) {
         EffectUnit.call(this, "EqualizerRack1", deckGroup);
     };
     EqualizerUnit.prototype = deriveFrom(EffectUnit);
 
     /**
      * @typedef {components.ComponentContainer} QuickEffectUnit
-     *
      * @property {components.Button} enabled En-/disable quick effect unit
      * @property {components.Pot} meta Meta knob
      * @property {components.Pot} super1 Super knob
@@ -781,13 +786,13 @@
     /**
      * A component container for quick effect controls.
      *
-     * @constructor
-     * @extends {components.ComponentContainer}
+     * @function Object() { [native code] }
+     * @augments {components.ComponentContainer}
      * @param {string} deckGroup Group of the deck this unit belongs to (e.g. `[Channel1]`)
      * @yields {QuickEffectUnit}
      * @public
      */
-    var QuickEffectUnit = function(deckGroup) {
+    const QuickEffectUnit = function(deckGroup) {
         EffectUnit.call(this, "QuickEffectRack1", deckGroup);
     };
     QuickEffectUnit.prototype = deriveFrom(EffectUnit);
@@ -795,11 +800,11 @@
     /**
      * Manage Components in named ComponentContainers.
      *
-     * @constructor
+     * @function Object() { [native code] }
      * @param {Array<string>} initialContainers Initial container names
      * @public
      */
-    var ComponentRegistry = function(initialContainers) {
+    const ComponentRegistry = function(initialContainers) {
         this.containers = new components.ComponentContainer();
         if (Array.isArray(initialContainers)) {
             initialContainers.forEach(function(name) { this.createContainer(name); }, this);
@@ -811,7 +816,7 @@
          * Create a new ComponentContainer within this registry.
          *
          * @param {string} name Name of the ComponentContainer
-         * @return {components.ComponentContainer} The ComponentContainer; `undefined` on error
+         * @returns {components.ComponentContainer} The ComponentContainer; `undefined` on error
          * @public
          */
         createContainer: function(name) {
@@ -828,7 +833,7 @@
          * Retrieve an existing ComponentContainer.
          *
          * @param {string} name Name of an existing ComponentContainer
-         * @return {components.ComponentContainer} The ComponentContainer; `undefined` on error
+         * @returns {components.ComponentContainer} The ComponentContainer; `undefined` on error
          * @public
          */
         getContainer: function(name) {
@@ -885,7 +890,7 @@
          *
          * @param {components.Component} component A component
          * @param {string} containerName Name of a ComponentContainer
-         * @return {string} ID of the stored component; `undefined` on error
+         * @returns {string} ID of the stored component; `undefined` on error
          * @public
          */
         register: function(component, containerName) {
@@ -898,14 +903,14 @@
                     + stringifyComponent(component) + " without MIDI address");
                 return;
             }
-            var id = findComponentId(component.midi);
+            const id = findComponentId(component.midi);
             if (!Object.prototype.hasOwnProperty.call(this.containers, containerName)) {
                 this.createContainer(containerName);
             }
-            var container = this.getContainer(containerName);
-            var store = true;
+            const container = this.getContainer(containerName);
+            let store = true;
             if (Object.prototype.hasOwnProperty.call(container, id)) {
-                var old = container[id];
+                const old = container[id];
                 if (old !== component) {
                     this.unregister(old, containerName);
                 } else {
@@ -927,13 +932,13 @@
          *
          * @param {components.Component} component A component
          * @param {string} containerName Name of an existing ComponentContainer
-         * @return {string} ID of the removed component; `undefined` on error
+         * @returns {string} ID of the removed component; `undefined` on error
          * @public
          */
         unregister: function(component, containerName) {
             log.debug(containerName + ": unregister " + stringifyComponent(component));
-            var container = this.getContainer(containerName);
-            var id = findComponentId(component.midi);
+            const container = this.getContainer(containerName);
+            const id = findComponentId(component.midi);
             delete container[id];
             return id;
         },
@@ -956,13 +961,13 @@
      * dis-/connected on layer switch. Components are not dis-/connected when they are
      * un-/registered to a layer.
      *
-     * @constructor
-     * @extends {components.Component}
-     * @param {object} options Options object
+     * @function Object() { [native code] }
+     * @augments {components.Component}
+     * @param {Object} options Options object
      * @param {boolean} options.debug Optional flag to emit debug messages to the log
      * @public
      */
-    var LayerManager = function(options) {
+    const LayerManager = function(options) {
         this.componentRegistry = new ComponentRegistry([
             LayerManager.prototype.defaultContainerName,
             LayerManager.prototype.shiftContainerName]);
@@ -978,11 +983,11 @@
         /**
          * Retrieve the Default layer.
          *
-         * @return {object} The Default layer
+         * @returns {Object} The Default layer
          * @private
          */
         defaultLayer: function() {
-            var defaultContainer = this.componentRegistry.getContainer(this.defaultContainerName);
+            const defaultContainer = this.componentRegistry.getContainer(this.defaultContainerName);
             return Object.keys(this.shiftLayer()).reduce(
                 function(shiftCounterparts, name) {
                     shiftCounterparts[name] = defaultContainer[name];
@@ -993,7 +998,7 @@
         /**
          * Retrieve the Shift layer.
          *
-         * @return {object} The Shift layer
+         * @returns {Object} The Shift layer
          * @private
          */
         shiftLayer: function() {
@@ -1005,20 +1010,20 @@
          *
          * @param {number} status First byte of the component's MIDI address
          * @param {number} control Second byte of the component's MIDI address
-         * @return {components.Component} Component on the active layer matching the MIDI address;
+         * @returns {components.Component} Component on the active layer matching the MIDI address;
          *                                undefined on error. When the active layer does not contain
          *                                a matching component, the Default layer is used as
          *                                fallback.
          * @private
          */
         findComponent: function(status, control) {
-            var id = findComponentId([status, control]);
+            const id = findComponentId([status, control]);
             if (id === undefined) {
                 return;
             }
-            var component = this.activeLayer[id];
+            let component = this.activeLayer[id];
             if (component === undefined) {
-                var defaultComponents
+                const defaultComponents
                     = this.componentRegistry.getContainer(this.defaultContainerName);
                 component = defaultComponents[id];
             }
@@ -1034,13 +1039,14 @@
          * Run a registry operation for a component on a layer.
          *
          * @param {LayerManager~registryOperation} The operation to run
+         * @param operation
          * @param {components.Component} component A component
          * @param {boolean} shift Iff true, use Shift Layer, otherwise use Default Layer
-         * @return Result of the operation
+         * @returns Result of the operation
          * @private
          */
         onRegistry: function(operation, component, shift) {
-            var layerName = shift === true ? this.shiftContainerName : this.defaultContainerName;
+            const layerName = shift === true ? this.shiftContainerName : this.defaultContainerName;
             return operation.call(this.componentRegistry, component, layerName);
         }
         /**
@@ -1071,7 +1077,7 @@
          * @public
          */
         unregister: function(component, shift) {
-            var id = this.onRegistry(this.componentRegistry.unregister, component, shift);
+            const id = this.onRegistry(this.componentRegistry.unregister, component, shift);
             delete this.activeLayer[id];
         },
 
@@ -1135,7 +1141,7 @@
          * @public
          */
         input: function(channel, control, value, status /* ignored: ,group */) {
-            var component = this.findComponent(status, control);
+            const component = this.findComponent(status, control);
             if (component === undefined) {
                 return;
             }
@@ -1227,13 +1233,13 @@
      *           +- init: (function, optional) A function that is called after component creation
      *                                         and before first use
      *
-     * @constructor
-     * @extends {components.ComponentContainer}
-     * @param {object} options Options object
-     * @param {function} components.configurationProvider Mapping configuration provider
+     * @function Object() { [native code] }
+     * @augments {components.ComponentContainer}
+     * @param {Object} options Options object
+     * @param {Function} components.configurationProvider Mapping configuration provider
      * @public
      */
-    var GenericMidiController = function(options) {
+    const GenericMidiController = function(options) {
         if (!options || typeof options.configurationProvider !== "function") {
             log.error("The required function 'configurationProvider' is missing.");
             return;
@@ -1255,7 +1261,7 @@
             this.controllerId = controllerId;
             this.debug = debug;
 
-            var delay = this.config.throttleDelay;
+            const delay = this.config.throttleDelay;
             if (delay > 0) {
                 log.debug("Component registration is throttled using a delay of " + delay + "ms");
                 this.throttler = new Throttler({delay: delay});
@@ -1315,19 +1321,19 @@
          * additional component containers.
          *
          * @param {Array} target Target for decks, effect units and additional component containers
-         * @param {object} deckDefinitions Definition of decks
-         * @param {object} effectUnitDefinitions Definition of effect units
-         * @param {object} containerDefinitions Definition of additional component containers
-         * @return {object} Layer manager
+         * @param {Object} deckDefinitions Definition of decks
+         * @param {Object} effectUnitDefinitions Definition of effect units
+         * @param {Object} containerDefinitions Definition of additional component containers
+         * @returns {Object} Layer manager
          * @see `LayerManager`
          * @private
          */
         createLayerManager: function(target,
             deckDefinitions, effectUnitDefinitions, containerDefinitions) {
 
-            var layerManager = new LayerManager({debug: this.debug});
-            var controller = this;
-            var registerComponents = function(definition, implementation) {
+            const layerManager = new LayerManager({debug: this.debug});
+            const controller = this;
+            const registerComponents = function(definition, implementation) {
                 controller.registerComponents(layerManager, definition, implementation);
             };
 
@@ -1363,7 +1369,7 @@
                 if (Array.isArray(context.definitions)) {
                     context.definitions.forEach(function(definition) {
                         throttle(function() {
-                            var implementation = context.factory.call(this, definition, target);
+                            const implementation = context.factory.call(this, definition, target);
                             target.push(implementation);
                             context.register(definition, implementation);
                         }, this);
@@ -1381,16 +1387,16 @@
         /**
          * Create a deck.
          *
-         * @param {object} deckDefinition Definition of the deck
+         * @param {Object} deckDefinition Definition of the deck
          * @param {Array} componentStorage Storage for additionally created components
          * @yields {components.Deck} The new deck
          * @private
          */
         createDeck: function(deckDefinition, componentStorage) {
-            var deck = new components.Deck(deckDefinition.deckNumbers);
+            const deck = new components.Deck(deckDefinition.deckNumbers);
             deckDefinition.components.forEach(function(componentDefinition, index) {
-                var options = _.merge({group: deck.currentDeck}, componentDefinition.options);
-                var definition = _.merge(componentDefinition, {options: options});
+                const options = _.merge({group: deck.currentDeck}, componentDefinition.options);
+                const definition = _.merge(componentDefinition, {options: options});
                 deck[index] = this.createComponent(definition);
             }, this);
             if (deckDefinition.equalizerUnit) {
@@ -1411,10 +1417,10 @@
         /**
          * Process all MIDI addresses (number arrays) of a component container definition.
          *
-         * @param {object} definition Definition of a component container with MIDI addresses
+         * @param {Object} definition Definition of a component container with MIDI addresses
          * @param {components.ComponentContainer} implementation Corresponding component container
          *                                        object
-         * @param {function} action Function that performs the processing of a single MIDI address
+         * @param {Function} action Function that performs the processing of a single MIDI address
          * @private
          */
         processMidiAddresses: function(definition, implementation, action) {
@@ -1436,7 +1442,7 @@
          * @private
          */
         createPublisher: function(source, publisherStorage) {
-            var publisher = new Publisher({source: source});
+            const publisher = new Publisher({source: source});
             publisherStorage.push(publisher);
             return publisher;
         },
@@ -1446,12 +1452,12 @@
          *
          * Publisher components will be created when the definition is configured respectively.
          *
-         * @param {object} definition Definition of a component container with MIDI addresses
-         * @param {object} implementation Corresponding component container object
+         * @param {Object} definition Definition of a component container with MIDI addresses
+         * @param {Object} implementation Corresponding component container object
          * @param {Array} publisherStorage Storage for publisher components
          * @param {Array<string>} rebindTriggers Names of functions that trigger rebinding a
          *                                       publisher to its source component
-         * @return {components.ComponentContainer} The given component container argument
+         * @returns {components.ComponentContainer} The given component container argument
          * @private
          */
         setupMidi: function(definition, implementation, publisherStorage, rebindTriggers) {
@@ -1464,14 +1470,14 @@
 
             /* Add publishers for pots */
             if (definition.feedback) {
-                var triggers = rebindTriggers || [];
-                var createPublisher = this.createPublisher; // `this` is bound to implementation
+                const triggers = rebindTriggers || [];
+                const createPublisher = this.createPublisher; // `this` is bound to implementation
                 implementation.forEachComponent(function(effectComponent) {
                     if (effectComponent instanceof components.Pot) {
-                        var publisher = createPublisher(effectComponent, publisherStorage);
-                        var prototype = Object.getPrototypeOf(effectComponent);
+                        const publisher = createPublisher(effectComponent, publisherStorage);
+                        const prototype = Object.getPrototypeOf(effectComponent);
                         triggers.forEach(function(functionName) {
-                            var delegate = prototype[functionName];
+                            const delegate = prototype[functionName];
                             if (typeof delegate === "function") {
                                 prototype[functionName] = function() {
                                     delegate.apply(this, arguments);
@@ -1501,18 +1507,18 @@
          * The values of the unit's components are sent to the controller
          * when the definition is configured respectively.
          *
-         * @param {object} effectUnitDefinition Definition of the effect unit
+         * @param {Object} effectUnitDefinition Definition of the effect unit
          * @param {Array} componentStorage Storage for additionally created components
          * @yields {components.EffectUnit}
          * @private
          */
         createEffectUnit: function(effectUnitDefinition, componentStorage) {
-            var effectUnit = this.setupMidi(
+            const effectUnit = this.setupMidi(
                 effectUnitDefinition,
                 new components.EffectUnit(effectUnitDefinition.unitNumbers, true),
                 componentStorage,
                 ["onFocusChange", "shift", "unshift"]);
-            var shiftType = effectUnitDefinition.sendShiftedFor;
+            const shiftType = effectUnitDefinition.sendShiftedFor;
             /*
              * `shiftType` is expected to be a JS component (e.g. `c.Button` or `c.Component`)
              * which in terms of JS means that it is of type `function`. If something else is given
@@ -1532,16 +1538,16 @@
         /**
          * Create a component container.
          *
-         * @param {object} containerDefinition Definition of the component container
-         * @yields {object} The new component container
+         * @param {Object} containerDefinition Definition of the component container
+         * @yields {Object} The new component container
          * @private
          */
         createComponentContainer: function(containerDefinition) {
-            var containerType = containerDefinition.type || components.ComponentContainer;
-            var container = new containerType(containerDefinition.options);
+            const containerType = containerDefinition.type || components.ComponentContainer;
+            const container = new containerType(containerDefinition.options);
             if (containerDefinition.components) {
                 containerDefinition.components.forEach(function(componentDefinition, index) {
-                    var definition = _.merge(
+                    const definition = _.merge(
                         {}, containerDefinition.defaultDefinition || {}, componentDefinition);
                     container[index] = this.createComponent(definition);
                 }, this);
@@ -1555,12 +1561,12 @@
         /**
          * Create a component or component container.
          *
-         * @param {object} definition Definition of a component or component container
+         * @param {Object} definition Definition of a component or component container
          * @yields {component.Component|component.ComponentContainer|null} The new component or component container
          * @private
          */
         createComponent: function(definition) {
-            var component = null;
+            let component = null;
             if (definition && definition.type) {
                 if (definition.type.prototype instanceof components.ComponentContainer) {
                     component = this.createComponentContainer(definition);
@@ -1578,8 +1584,9 @@
          * Register a component with all its child components in the layer manager.
          *
          * @param {LayerManager} layerManager Layer manager
-         * @param {object} definition Definition of a component
+         * @param {Object} definition Definition of a component
          * @param {components.Component|components.ComponentContainer} Implementation of a component
+         * @param implementation
          * @private
          */
         registerComponents: function(layerManager, definition, implementation) {
@@ -1587,14 +1594,14 @@
                 layerManager.register(implementation, definition && definition.shift === true);
             } else if (implementation instanceof components.ComponentContainer) {
                 Object.keys(implementation).forEach(function(name) {
-                    var definitionName = definition ? definition[name] : null;
+                    const definitionName = definition ? definition[name] : null;
                     this.registerComponents(layerManager, definitionName, implementation[name]);
                 }, this);
             }
         },
     });
 
-    var exports = {};
+    const exports = {};
     exports.deriveFrom = deriveFrom;
     exports.ParameterComponent = ParameterComponent;
     exports.ShiftButton = ShiftButton;

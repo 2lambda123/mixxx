@@ -96,8 +96,8 @@ DJCi200.vinylButton = function(_channel, _control, value, status, _group) {
 };
 
 DJCi200._scratchEnable = function(deck) {
-    var alpha = 1.0/8;
-    var beta = alpha/32;
+    const alpha = 1.0/8;
+    const beta = alpha/32;
     engine.scratchEnable(deck, 248, 33 + 1/3, alpha, beta);
 };
 
@@ -110,7 +110,7 @@ DJCi200._convertWheelRotation = function(value) {
 
 // The touch action on the jog wheel's top surface
 DJCi200.wheelTouch = function(channel, control, value, _status, _group) {
-    var deck = channel;
+    const deck = channel;
     if (value > 0) {
         //  Touching the wheel.
         if (engine.getValue("[Channel" + deck + "]", "play") !== 1 || DJCi200.scratchButtonState) {
@@ -128,7 +128,7 @@ DJCi200.wheelTouch = function(channel, control, value, _status, _group) {
 
 // The touch action on the jog wheel's top surface while holding shift
 DJCi200.wheelTouchShift = function(channel, control, value, _status, _group) {
-    var deck = channel - 3;
+    const deck = channel - 3;
     // We always enable scratching regardless of button state.
     if (value > 0) {
         DJCi200._scratchEnable(deck);
@@ -142,7 +142,7 @@ DJCi200.wheelTouchShift = function(channel, control, value, _status, _group) {
 
 // Scratching on the jog wheel (rotating it while pressing the top surface)
 DJCi200.scratchWheel = function(channel, control, value, status, _group) {
-    var deck;
+    let deck;
     switch (status) {
     case 0xB1:
     case 0xB4:
@@ -155,8 +155,8 @@ DJCi200.scratchWheel = function(channel, control, value, status, _group) {
     default:
         return;
     }
-    var interval = DJCi200._convertWheelRotation(value);
-    var scratchAction = DJCi200.scratchAction[deck];
+    const interval = DJCi200._convertWheelRotation(value);
+    const scratchAction = DJCi200.scratchAction[deck];
     if (scratchAction === DJCi200.kScratchActionScratch) {
         engine.scratchTick(deck, interval * DJCi200.scratchScale);
     } else if (scratchAction === DJCi200.kScratchActionSeek) {
@@ -171,7 +171,7 @@ DJCi200.scratchWheel = function(channel, control, value, status, _group) {
 
 // Bending on the jog wheel (rotating using the edge)
 DJCi200.bendWheel = function(channel, control, value, _status, _group) {
-    var interval = DJCi200._convertWheelRotation(value);
+    const interval = DJCi200._convertWheelRotation(value);
     engine.setValue(
         "[Channel" + channel + "]", "jog", interval * DJCi200.bendScale);
 };

@@ -64,42 +64,41 @@ MixtrackPlatinum.init = function(id, debug) {
     MixtrackPlatinum.head_gain = new MixtrackPlatinum.HeadGain(MixtrackPlatinum.sampler_all);
 
     // exit demo mode
-    var byteArray = [0xF0, 0x00, 0x01, 0x3F, 0x7F, 0x3A, 0x60, 0x00, 0x04, 0x04, 0x01, 0x00, 0x00, 0xF7];
+    const byteArray = [0xF0, 0x00, 0x01, 0x3F, 0x7F, 0x3A, 0x60, 0x00, 0x04, 0x04, 0x01, 0x00, 0x00, 0xF7];
     midi.sendSysexMsg(byteArray, byteArray.length);
 
     // initialize some leds
-    MixtrackPlatinum.effects.forEachComponent(function (component) {
+    MixtrackPlatinum.effects.forEachComponent(function(component) {
         component.trigger();
     });
-    MixtrackPlatinum.decks.forEachComponent(function (component) {
+    MixtrackPlatinum.decks.forEachComponent(function(component) {
         component.trigger();
     });
 
     MixtrackPlatinum.browse = new MixtrackPlatinum.BrowseKnob();
 
     // helper functions
-    var led = function(group, key, midi_channel, midino) {
+    const led = function(group, key, midi_channel, midino) {
         if (engine.getValue(group, key)) {
             midi.sendShortMsg(0x90 | midi_channel, midino, 0x7F);
-        }
-        else {
+        } else {
             midi.sendShortMsg(0x80 | midi_channel, midino, 0x00);
         }
     };
 
     // init a bunch of channel specific leds
-    for (var i = 0; i < 4; ++i) {
-        var group = "[Channel"+(i+1)+"]";
+    for (let i = 0; i < 4; ++i) {
+        const group = "[Channel"+(i+1)+"]";
 
         // keylock indicator
-        led(group, 'keylock', i, 0x0D);
+        led(group, "keylock", i, 0x0D);
 
         // turn off bpm arrows
         midi.sendShortMsg(0x80 | i, 0x0A, 0x00); // down arrow off
         midi.sendShortMsg(0x80 | i, 0x09, 0x00); // up arrow off
 
         // slip indicator
-        led(group, 'slip_enabled', i, 0x0F);
+        led(group, "slip_enabled", i, 0x0F);
 
         // initialize wheel mode (and leds)
         MixtrackPlatinum.wheel[i] = EnableWheel;
@@ -129,7 +128,7 @@ MixtrackPlatinum.shutdown = function() {
     // re-enable demo mode.
 
     // turn off a bunch of channel specific leds
-    for (var i = 0; i < 4; ++i) {
+    for (let i = 0; i < 4; ++i) {
         // pfl/cue button leds
         midi.sendShortMsg(0x90 | i, 0x1B, 0x01);
 
@@ -210,29 +209,29 @@ MixtrackPlatinum.shutdown = function() {
     midi.sendShortMsg(0xBF, 0x45, 0);
 
     // send final shutdown message
-    var byteArray = [0xF0, 0x00, 0x20, 0x7F, 0x02, 0xF7];
+    const byteArray = [0xF0, 0x00, 0x20, 0x7F, 0x02, 0xF7];
     midi.sendSysexMsg(byteArray, byteArray.length);
 };
 
-MixtrackPlatinum.EffectUnit = function (unitNumbers) {
-    var eu = this;
+MixtrackPlatinum.EffectUnit = function(unitNumbers) {
+    const eu = this;
     this.unitNumbers = unitNumbers;
 
-    this.setCurrentUnit = function (newNumber) {
+    this.setCurrentUnit = function(newNumber) {
         this.currentUnitNumber = newNumber;
-        this.group = '[EffectRack1_EffectUnit' + newNumber + ']';
-        this.reconnectComponents(function (component) {
+        this.group = "[EffectRack1_EffectUnit" + newNumber + "]";
+        this.reconnectComponents(function(component) {
             // update [EffectRack1_EffectUnitX] groups
-            var unitMatch = component.group.match(script.effectUnitRegEx);
+            const unitMatch = component.group.match(script.effectUnitRegEx);
             if (unitMatch !== null) {
                 component.group = eu.group;
             } else {
                 // update [EffectRack1_EffectUnitX_EffectY] groups
-                var effectMatch = component.group.match(script.individualEffectRegEx);
+                const effectMatch = component.group.match(script.individualEffectRegEx);
                 if (effectMatch !== null) {
-                    component.group = '[EffectRack1_EffectUnit' +
+                    component.group = "[EffectRack1_EffectUnit" +
                                       eu.currentUnitNumber +
-                                      '_Effect' + effectMatch[2] + ']';
+                                      "_Effect" + effectMatch[2] + "]";
                 }
             }
         });
@@ -242,8 +241,8 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
 
     this.dryWetKnob = new components.Encoder({
         group: this.group,
-        inKey: 'mix',
-        input: function (channel, control, value, status, group) {
+        inKey: "mix",
+        input: function(channel, control, value, status, group) {
             if (value === 1) {
                 this.inSetParameter(this.inGetParameter() + 0.05);
             } else if (value === 127) {
@@ -259,7 +258,7 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
     };
     this.EffectUnitTouchStrip.prototype = new components.Pot({
         relative: true, // this disables soft takeover
-        input: function (channel, control, value, status, group) {
+        input: function(channel, control, value, status, group) {
             // never do soft takeover when the touchstrip is used
             engine.softTakeover(this.group, this.inKey, false);
             components.Pot.prototype.input.call(this, channel, control, value, status, group);
@@ -274,39 +273,37 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
         onFocusChange: function(value, group, control) {
             if (value === 0) {
                 this.group = eu.group;
-                this.inKey = 'super1';
-            }
-            else {
-                this.group = '[EffectRack1_EffectUnit' + eu.currentUnitNumber + '_Effect' + value + ']';
-                this.inKey = 'meta';
+                this.inKey = "super1";
+            } else {
+                this.group = "[EffectRack1_EffectUnit" + eu.currentUnitNumber + "_Effect" + value + "]";
+                this.inKey = "meta";
             }
         },
     });
 
-    this.BpmTapButton = function () {
-        this.group = '[Channel' + eu.currentUnitNumber + ']';
+    this.BpmTapButton = function() {
+        this.group = "[Channel" + eu.currentUnitNumber + "]";
         this.midi = [0x97 + eu.currentUnitNumber, 0x04];
         components.Button.call(this);
     };
     this.BpmTapButton.prototype = new components.Button({
         type: components.Button.prototype.types.push,
-        key: 'bpm_tap',
+        key: "bpm_tap",
         off: 0x01,
-        connect: function () {
-            this.group = '[Channel' + eu.currentUnitNumber + ']';
+        connect: function() {
+            this.group = "[Channel" + eu.currentUnitNumber + "]";
             components.Button.prototype.connect.call(this);
         },
-        input: function (channel, control, value, status, group) {
+        input: function(channel, control, value, status, group) {
             components.Button.prototype.input.call(this, channel, control, value, status, group);
             if (this.isPress(channel, control, value, status)) {
-                eu.forEachComponent(function (component) {
-                    if (component.tap !== undefined && typeof component.tap === 'function') {
+                eu.forEachComponent(function(component) {
+                    if (component.tap !== undefined && typeof component.tap === "function") {
                         component.tap();
                     }
                 });
-            }
-            else {
-                eu.forEachComponent(function (component) {
+            } else {
+                eu.forEachComponent(function(component) {
                     if (component.untap !== undefined) {
                         component.untap();
                     }
@@ -315,10 +312,10 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
         },
     });
 
-    this.EffectEnableButton = function (number) {
+    this.EffectEnableButton = function(number) {
         this.number = number;
-        this.group = '[EffectRack1_EffectUnit' + eu.currentUnitNumber +
-                      '_Effect' + this.number + ']';
+        this.group = "[EffectRack1_EffectUnit" + eu.currentUnitNumber +
+                      "_Effect" + this.number + "]";
         this.midi = [0x97 + eu.currentUnitNumber, this.number - 1];
         this.flash_timer = null;
 
@@ -326,11 +323,11 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
     };
     this.EffectEnableButton.prototype = new components.Button({
         type: components.Button.prototype.types.powerWindow,
-        outKey: 'enabled',
-        inKey: 'enabled',
+        outKey: "enabled",
+        inKey: "enabled",
         off: 0x01,
         tap: function() {
-            this.inKey = 'enabled';
+            this.inKey = "enabled";
             this.type = components.Button.prototype.types.toggle;
             this.inToggle = this.toggle_focused_effect;
         },
@@ -338,30 +335,28 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
             this.type = components.Button.prototype.types.powerWindow;
             this.inToggle = components.Button.prototype.inToggle;
         },
-        shift:  function() {
-            this.inKey = 'next_effect';
+        shift: function() {
+            this.inKey = "next_effect";
             this.type = components.Button.prototype.types.push;
         },
         unshift: function() {
-            this.inKey = 'enabled';
+            this.inKey = "enabled";
             this.type = components.Button.prototype.types.powerWindow;
         },
         output: function(value, group, control) {
-            var focused_effect = engine.getValue(eu.group, "focused_effect");
+            const focused_effect = engine.getValue(eu.group, "focused_effect");
             if (focused_effect !== this.number) {
                 engine.stopTimer(this.flash_timer);
                 this.flash_timer = null;
                 components.Button.prototype.output.call(this, value, group, control);
-            }
-            else {
+            } else {
                 this.startFlash();
             }
         },
         toggle_focused_effect: function() {
             if (engine.getValue(eu.group, "focused_effect") === this.number) {
                 engine.setValue(eu.group, "focused_effect", 0);
-            }
-            else {
+            } else {
                 engine.setValue(eu.group, "focused_effect", this.number);
             }
         },
@@ -376,8 +371,7 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
         onFocusChange: function(value, group, control) {
             if (value === this.number) {
                 this.startFlash();
-            }
-            else {
+            } else {
                 this.stopFlash();
             }
         },
@@ -390,22 +384,21 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
             this.flash_state = false;
             this.send(this.on);
 
-            var time = 500;
+            let time = 500;
             if (this.inGetValue() > 0) {
                 time = 150;
             }
 
-            var button = this;
+            const button = this;
             this.flash_timer = engine.beginTimer(time, function() {
                 if (button.flash_state) {
                     button.send(button.on);
                     button.flash_state = false;
-                }
-                else {
+                } else {
                     button.send(button.off);
                     button.flash_state = true;
                 }
-            }.bind(this));
+            });
         },
         stopFlash: function() {
             engine.stopTimer(this.flash_timer);
@@ -426,12 +419,12 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
                 engine.setValue(eu.group, "show_parameters", 1);
             }
         }
-    }.bind(this));
+    });
     this.show_focus_connection.trigger();
 
     this.touch_strip = new this.EffectUnitTouchStrip();
     this.enableButtons = new components.ComponentContainer();
-    for (var n = 1; n <= 3; n++) {
+    for (let n = 1; n <= 3; n++) {
         this.enableButtons[n] = new this.EffectEnableButton(n);
     }
 
@@ -439,7 +432,7 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
 
     this.enableButtons.reconnectComponents();
 
-    this.forEachComponent(function (component) {
+    this.forEachComponent(function(component) {
         if (component.group === undefined) {
             component.group = eu.group;
         }
@@ -448,8 +441,8 @@ MixtrackPlatinum.EffectUnit = function (unitNumbers) {
 MixtrackPlatinum.EffectUnit.prototype = new components.ComponentContainer();
 
 MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
-    var deck = this;
-    var eu = effects_unit;
+    const deck = this;
+    const eu = effects_unit;
     this.active = (number == 1 || number == 2);
 
     components.Deck.call(this, number);
@@ -478,7 +471,7 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
             // the controller appears to expect a value in the range of 0-52
             // representing the position of the track. Here we send a message to the
             // controller to update the position display with our current position.
-            var pos = Math.round(playposition * 52);
+            let pos = Math.round(playposition * 52);
             if (pos < 0) {
                 pos = 0;
             }
@@ -488,17 +481,17 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
             duration = deck.duration.outGetValue();
 
             // update the time display
-            var time = MixtrackPlatinum.timeMs(number, playposition, duration);
+            const time = MixtrackPlatinum.timeMs(number, playposition, duration);
             MixtrackPlatinum.sendScreenTimeMidi(number, time);
 
             // update the spinner (range 64-115, 52 values)
             //
             // the visual spinner in the mixxx interface takes 1.8 seconds to loop
             // (60 seconds/min divided by 33 1/3 revolutions per min)
-            var period = 60 / (33+1/3);
-            var midiResolution = 52; // the controller expects a value range of 64-115
-            var timeElapsed = duration * playposition;
-            var spinner = Math.round(timeElapsed % period * (midiResolution / period));
+            const period = 60 / (33+1/3);
+            const midiResolution = 52; // the controller expects a value range of 64-115
+            const timeElapsed = duration * playposition;
+            let spinner = Math.round(timeElapsed % period * (midiResolution / period));
             if (spinner < 0) {
                 spinner += 115;
             } else {
@@ -520,23 +513,22 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
             this.type = components.Button.prototype.types.toggle;
         },
         shift: function() {
-            this.inKey = 'play_stutter';
+            this.inKey = "play_stutter";
             this.type = components.Button.prototype.types.push;
         },
     });
 
     this.load = new components.Button({
-        inKey: 'LoadSelectedTrack',
+        inKey: "LoadSelectedTrack",
         shift: function() {
             if (ShiftLoadEjects) {
-                this.inKey = 'eject';
-            }
-            else {
-                this.inKey = 'LoadSelectedTrackAndPlay';
+                this.inKey = "eject";
+            } else {
+                this.inKey = "LoadSelectedTrackAndPlay";
             }
         },
         unshift: function() {
-            this.inKey = 'LoadSelectedTrack';
+            this.inKey = "LoadSelectedTrack";
         },
     });
 
@@ -558,7 +550,7 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
 
     this.pfl_button = new components.Button({
         midi: [0x90 + midi_chan, 0x1B],
-        key: 'pfl',
+        key: "pfl",
         off: 0x01,
         type: components.Button.prototype.types.toggle,
         connect: function() {
@@ -569,7 +561,7 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
 
     this.hotcue_buttons = new components.ComponentContainer();
     this.sampler_buttons = new components.ComponentContainer();
-    for (var i = 1; i <= 4; ++i) {
+    for (let i = 1; i <= 4; ++i) {
         this.hotcue_buttons[i] = new components.HotcueButton({
             midi: [0x94 + midi_chan, 0x18 + i - 1],
             number: i,
@@ -592,52 +584,50 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
     this.hotcues = this.hotcue_buttons;
 
     this.pitch = new components.Pot({
-        inKey: 'rate',
+        inKey: "rate",
         invert: true,
     });
     if (!this.active) {
         this.pitch.firstValueReceived = true;
     }
 
-    var pitch_or_keylock = function (channel, control, value, status, group) {
+    const pitch_or_keylock = function(channel, control, value, status, group) {
         if (this.other.inGetValue() > 0.0 && this.isPress(channel, control, value, status)) {
             // toggle keylock, both keys pressed
             script.toggleControl(this.group, "keylock");
-        }
-        else {
+        } else {
             components.Button.prototype.input.call(this, channel, control, value, status, group);
         }
     };
     this.pitch_bend_up = new components.Button({
-        inKey: 'rate_temp_up',
+        inKey: "rate_temp_up",
         input: pitch_or_keylock,
     });
     this.pitch_bend_down = new components.Button({
-        inKey: 'rate_temp_down',
+        inKey: "rate_temp_down",
         input: pitch_or_keylock,
     });
     this.pitch_bend_up.other = this.pitch_bend_down;
     this.pitch_bend_down.other = this.pitch_bend_up;
 
-    var key_up_or_down = function (channel, control, value, status, group) {
+    const key_up_or_down = function(channel, control, value, status, group) {
         this.is_pressed = this.isPress(channel, control, value, status);
         if (this.is_pressed) {
             if (this.other.is_pressed) {
                 // reset if both buttons are pressed
                 engine.setValue(deck.currentDeck, "pitch_adjust", 0.0);
-            }
-            else {
+            } else {
                 this.inSetValue(1.0);
             }
         }
     };
     this.key_up = new components.Button({
-        inKey: 'pitch_up',
+        inKey: "pitch_up",
         direction: 1,
         input: key_up_or_down,
     });
     this.key_down = new components.Button({
-        inKey: 'pitch_down',
+        inKey: "pitch_down",
         direction: -1,
         input: key_up_or_down,
     });
@@ -677,22 +667,22 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
     });
     this.normal_manloop = new components.ComponentContainer({
         loop_in: new components.Button(loop_base(0x38, {
-            inKey: 'loop_in',
-            outKey: 'loop_start_position',
-            outValueScale: function (value) {
+            inKey: "loop_in",
+            outKey: "loop_start_position",
+            outValueScale: function(value) {
                 return (value != -1) ? this.on : this.off;
             },
         })),
         loop_out: new components.Button(loop_base(0x39, {
-            inKey: 'loop_out',
-            outKey: 'loop_end_position',
-            outValueScale: function (value) {
+            inKey: "loop_out",
+            outKey: "loop_end_position",
+            outValueScale: function(value) {
                 return (value != -1) ? this.on : this.off;
             },
         })),
         loop_toggle: new components.LoopToggleButton(loop_base(0x32, {})),
         loop_halve: new components.Button(loop_base(0x34, {
-            key: 'loop_halve',
+            key: "loop_halve",
             input: function(channel, control, value, status) {
                 if (this.isPress(channel, control, value, status)) {
                     engine.setValue(deck.currentDeck, "loop_scale", 0.5);
@@ -700,7 +690,7 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
             },
         })),
         loop_double: new components.Button(loop_base(0x35, {
-            key: 'loop_double',
+            key: "loop_double",
             input: function(channel, control, value, status) {
                 if (this.isPress(channel, control, value, status)) {
                     engine.setValue(deck.currentDeck, "loop_scale", 2.0);
@@ -710,7 +700,7 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
     });
     // swap normal and alternate manual loop controls
     if (UseManualLoopAsCue) {
-        var manloop = this.normal_manloop;
+        const manloop = this.normal_manloop;
         this.normal_manloop = this.alternate_manloop;
         this.alternate_manloop = manloop;
     }
@@ -757,55 +747,55 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
 
     this.normal_autoloop = new components.ComponentContainer({
         auto1: new components.Button(auto_loop_base(0x14, {
-            inKey: 'beatloop_1_toggle',
-            outKey: 'beatloop_1_enabled',
+            inKey: "beatloop_1_toggle",
+            outKey: "beatloop_1_enabled",
         })),
         auto2: new components.Button(auto_loop_base(0x15, {
-            inKey: 'beatloop_2_toggle',
-            outKey: 'beatloop_2_enabled',
+            inKey: "beatloop_2_toggle",
+            outKey: "beatloop_2_enabled",
         })),
         auto3: new components.Button(auto_loop_base(0x16, {
-            inKey: 'beatloop_4_toggle',
-            outKey: 'beatloop_4_enabled',
+            inKey: "beatloop_4_toggle",
+            outKey: "beatloop_4_enabled",
         })),
         auto4: new components.Button(auto_loop_base(0x17, {
-            inKey: 'beatloop_8_toggle',
-            outKey: 'beatloop_8_enabled',
+            inKey: "beatloop_8_toggle",
+            outKey: "beatloop_8_enabled",
         })),
 
         roll1: new components.Button(auto_loop_base(0x1C, {
-            inKey: 'beatlooproll_0.0625_activate',
-            outKey: 'beatloop_0.0625_enabled',
+            inKey: "beatlooproll_0.0625_activate",
+            outKey: "beatloop_0.0625_enabled",
         })),
         roll2: new components.Button(auto_loop_base(0x1D, {
-            inKey: 'beatlooproll_0.125_activate',
-            outKey: 'beatloop_0.125_enabled',
+            inKey: "beatlooproll_0.125_activate",
+            outKey: "beatloop_0.125_enabled",
         })),
         roll3: new components.Button(auto_loop_base(0x1E, {
-            inKey: 'beatlooproll_0.25_activate',
-            outKey: 'beatloop_0.25_enabled',
+            inKey: "beatlooproll_0.25_activate",
+            outKey: "beatloop_0.25_enabled",
         })),
         roll4: new components.Button(auto_loop_base(0x1F, {
-            inKey: 'beatlooproll_0.5_activate',
-            outKey: 'beatloop_0.5_enabled',
+            inKey: "beatlooproll_0.5_activate",
+            outKey: "beatloop_0.5_enabled",
         })),
     });
 
     // swap normal and alternate auto loop controls
     if (UseAutoLoopAsCue) {
-        var autoloop = this.normal_autoloop;
+        const autoloop = this.normal_autoloop;
         this.normal_autoloop = this.alternate_autoloop;
         this.alternate_autoloop = autoloop;
     }
     this.autoloop = this.normal_autoloop;
 
     this.pad_mode = new components.Component({
-        input: function (channel, control, value, status, group) {
+        input: function(channel, control, value, status, group) {
             // only handle button down events
-            if (value != 0x7F) return;
+            if (value != 0x7F) { return; }
 
-            var shifted_hotcues = deck.sampler_buttons;
-            var normal_hotcues = deck.hotcue_buttons;
+            let shifted_hotcues = deck.sampler_buttons;
+            let normal_hotcues = deck.hotcue_buttons;
             if (UseCueAsSampler) {
                 shifted_hotcues = deck.hotcue_buttons;
                 normal_hotcues = deck.sampler_buttons;
@@ -880,12 +870,12 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
         },
     });
 
-    this.EqEffectKnob = function (group, in_key, fx_key, filter_knob) {
+    this.EqEffectKnob = function(group, in_key, fx_key, filter_knob) {
         this.unshift_group = group;
         this.unshift_key = in_key;
         this.fx_key = fx_key;
         if (filter_knob) {
-            this.shift_key = 'super1';
+            this.shift_key = "super1";
         }
         this.ignore_next = null;
         components.Pot.call(this, {
@@ -894,7 +884,7 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
         });
     };
     this.EqEffectKnob.prototype = new components.Pot({
-        input: function (channel, control, value, status, group) {
+        input: function(channel, control, value, status, group) {
             // if the control group and key has changed, ignore_next will hold
             // the old settings. We need to tell the soft takeover engine to
             // ignore the next values for that control so that when we
@@ -916,14 +906,14 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
         },
         connect: function() {
             // enable soft takeover on our controls
-            for (var i = 1; i <= 3; i ++) {
-                var group = '[EffectRack1_EffectUnit' + eu.currentUnitNumber + '_Effect' + i + ']';
+            for (let i = 1; i <= 3; i ++) {
+                const group = "[EffectRack1_EffectUnit" + eu.currentUnitNumber + "_Effect" + i + "]";
                 engine.softTakeover(group, this.fx_key, true);
             }
             components.Pot.prototype.connect.call(this);
         },
         shift: function() {
-            var focused_effect = engine.getValue(eu.group, "focused_effect");
+            const focused_effect = engine.getValue(eu.group, "focused_effect");
             if (focused_effect === 0) {
                 // we need this here so that shift+filter works with soft
                 // takeover because touching the touch strip disables it each
@@ -932,9 +922,8 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
                     engine.softTakeover(eu.group, this.shift_key, true);
                     this.switchControl(eu.group, this.shift_key);
                 }
-            }
-            else {
-                var group = '[EffectRack1_EffectUnit' + eu.currentUnitNumber + '_Effect' + focused_effect + ']';
+            } else {
+                const group = "[EffectRack1_EffectUnit" + eu.currentUnitNumber + "_Effect" + focused_effect + "]";
                 this.switchControl(group, this.fx_key);
             }
         },
@@ -943,30 +932,30 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
         },
         switchControl: function(group, key) {
             if (this.group != group || this.inKey != key) {
-                this.ignore_next = { 'group': this.group, 'key': this.inKey };
+                this.ignore_next = {"group": this.group, "key": this.inKey};
             }
             this.group = group;
             this.inKey = key;
         },
     });
 
-    var eq_group = '[EqualizerRack1_' + this.currentDeck + '_Effect1]';
-    this.high_eq = new this.EqEffectKnob(eq_group, 'parameter3', 'parameter3');
-    this.mid_eq = new this.EqEffectKnob(eq_group, 'parameter2', 'parameter4');
-    this.low_eq = new this.EqEffectKnob(eq_group, 'parameter1', 'parameter5');
+    const eq_group = "[EqualizerRack1_" + this.currentDeck + "_Effect1]";
+    this.high_eq = new this.EqEffectKnob(eq_group, "parameter3", "parameter3");
+    this.mid_eq = new this.EqEffectKnob(eq_group, "parameter2", "parameter4");
+    this.low_eq = new this.EqEffectKnob(eq_group, "parameter1", "parameter5");
 
     this.filter = new this.EqEffectKnob(
-        '[QuickEffectRack1_' + this.currentDeck + ']',
-        'super1',
-        'parameter1',
+        "[QuickEffectRack1_" + this.currentDeck + "]",
+        "super1",
+        "parameter1",
         true);
 
     this.gain = new this.EqEffectKnob(
         this.currentDeck,
-        'pregain',
-        'parameter2');
+        "pregain",
+        "parameter2");
 
-    this.reconnectComponents(function (c) {
+    this.reconnectComponents(function(c) {
         if (c.group === undefined) {
             c.group = deck.currentDeck;
         }
@@ -990,7 +979,7 @@ MixtrackPlatinum.Deck = function(number, midi_chan, effects_unit) {
 MixtrackPlatinum.Deck.prototype = new components.Deck();
 
 MixtrackPlatinum.Sampler = function(base) {
-    for (var i = 1; i <= 4; ++i) {
+    for (let i = 1; i <= 4; ++i) {
         this[i] = new components.SamplerButton({
             midi: [0x9F, 0x20 + i],
             number: base+i-1,
@@ -1009,13 +998,13 @@ MixtrackPlatinum.HeadGain = function(sampler) {
     this.shifted = false;
     this.sampler = sampler;
     this.sampler.forEachComponent(function(component) {
-        engine.softTakeover(component.group, 'volume', true);
+        engine.softTakeover(component.group, "volume", true);
     });
 };
 MixtrackPlatinum.HeadGain.prototype = new components.Pot({
-    group: '[Master]',
-    inKey: 'headGain',
-    input: function (channel, control, value, status, group) {
+    group: "[Master]",
+    inKey: "headGain",
+    input: function(channel, control, value, status, group) {
         // we call softTakeoverIgnoreNextValue() here on the non-targeted
         // control only if the control was moved when focus was switched. This
         // is to avoid a phantom triggering of soft takeover that can happen if
@@ -1023,20 +1012,19 @@ MixtrackPlatinum.HeadGain.prototype = new components.Pot({
         // is changed (like in shift()/unshift()).
         if (this.ignore_next == "sampler" && !this.shifted) {
             this.sampler.forEachComponent(function(component) {
-                engine.softTakeoverIgnoreNextValue(component.group, 'volume');
+                engine.softTakeoverIgnoreNextValue(component.group, "volume");
             });
             this.ignore_next = null;
-        }
-        else if (this.ignore_next == "headgain" && this.shifted) {
+        } else if (this.ignore_next == "headgain" && this.shifted) {
             engine.softTakeoverIgnoreNextValue(this.group, this.inKey);
             this.ignore_next = null;
         }
 
         if (this.shifted) {
             // make head gain control the sampler volume when shifted
-            var pot = this;
+            const pot = this;
             this.sampler.forEachComponent(function(component) {
-                engine.setParameter(component.group, 'volume', pot.inValueScale(value));
+                engine.setParameter(component.group, "volume", pot.inValueScale(value));
             });
         } else {
             components.Pot.prototype.input.call(this, channel, control, value, status, group);
@@ -1054,30 +1042,30 @@ MixtrackPlatinum.HeadGain.prototype = new components.Pot({
 
 MixtrackPlatinum.BrowseKnob = function() {
     this.knob = new components.Encoder({
-        group: '[Library]',
-        input: function (channel, control, value, status, group) {
+        group: "[Library]",
+        input: function(channel, control, value, status, group) {
             if (value === 1) {
-                engine.setParameter(this.group, this.inKey + 'Down', 1);
+                engine.setParameter(this.group, this.inKey + "Down", 1);
             } else if (value === 127) {
-                engine.setParameter(this.group, this.inKey + 'Up', 1);
+                engine.setParameter(this.group, this.inKey + "Up", 1);
             }
         },
         unshift: function() {
-            this.inKey = 'Move';
+            this.inKey = "Move";
         },
         shift: function() {
-            this.inKey = 'Scroll';
+            this.inKey = "Scroll";
         },
     });
 
     this.button = new components.Button({
-        group: '[Library]',
-        inKey: 'GoToItem',
+        group: "[Library]",
+        inKey: "GoToItem",
         unshift: function() {
-            this.inKey = 'GoToItem';
+            this.inKey = "GoToItem";
         },
         shift: function() {
-            this.inKey = 'MoveFocusForward';
+            this.inKey = "MoveFocusForward";
         },
     });
 };
@@ -1085,7 +1073,7 @@ MixtrackPlatinum.BrowseKnob = function() {
 MixtrackPlatinum.BrowseKnob.prototype = new components.ComponentContainer();
 
 MixtrackPlatinum.encodeNumToArray = function(number) {
-    var number_array = [
+    const number_array = [
         (number >> 28) & 0x0F,
         (number >> 24) & 0x0F,
         (number >> 20) & 0x0F,
@@ -1096,8 +1084,7 @@ MixtrackPlatinum.encodeNumToArray = function(number) {
         number & 0x0F,
     ];
 
-    if (number < 0) number_array[0] = 0x07;
-    else number_array[0] = 0x08;
+    if (number < 0) { number_array[0] = 0x07; } else { number_array[0] = 0x08; }
 
     return number_array;
 };
@@ -1108,18 +1095,18 @@ MixtrackPlatinum.sendScreenDurationMidi = function(deck, duration) {
     }
     durationArray = MixtrackPlatinum.encodeNumToArray(duration - 1);
 
-    var bytePrefix = [0xF0, 0x00, 0x20, 0x7F, deck, 0x03];
-    var bytePostfix = [0xF7];
-    var byteArray = bytePrefix.concat(durationArray, bytePostfix);
+    const bytePrefix = [0xF0, 0x00, 0x20, 0x7F, deck, 0x03];
+    const bytePostfix = [0xF7];
+    const byteArray = bytePrefix.concat(durationArray, bytePostfix);
     midi.sendSysexMsg(byteArray, byteArray.length);
 };
 
 MixtrackPlatinum.sendScreenTimeMidi = function(deck, time) {
-    var timeArray = MixtrackPlatinum.encodeNumToArray(time);
+    const timeArray = MixtrackPlatinum.encodeNumToArray(time);
 
-    var bytePrefix = [0xF0, 0x00, 0x20, 0x7F, deck, 0x04];
-    var bytePostfix = [0xF7];
-    var byteArray = bytePrefix.concat(timeArray, bytePostfix);
+    const bytePrefix = [0xF0, 0x00, 0x20, 0x7F, deck, 0x04];
+    const bytePostfix = [0xF7];
+    const byteArray = bytePrefix.concat(timeArray, bytePostfix);
     midi.sendSysexMsg(byteArray, byteArray.length);
 };
 
@@ -1128,25 +1115,25 @@ MixtrackPlatinum.sendScreenBpmMidi = function(deck, bpm) {
     bpmArray.shift();
     bpmArray.shift();
 
-    var bytePrefix = [0xF0, 0x00, 0x20, 0x7F, deck, 0x01];
-    var bytePostfix = [0xF7];
-    var byteArray = bytePrefix.concat(bpmArray, bytePostfix);
+    const bytePrefix = [0xF0, 0x00, 0x20, 0x7F, deck, 0x01];
+    const bytePostfix = [0xF7];
+    const byteArray = bytePrefix.concat(bpmArray, bytePostfix);
     midi.sendSysexMsg(byteArray, byteArray.length);
 };
 
-MixtrackPlatinum.elapsedToggle = function (channel, control, value, status, group) {
-    if (value != 0x7F) return;
+MixtrackPlatinum.elapsedToggle = function(channel, control, value, status, group) {
+    if (value != 0x7F) { return; }
 
-    var current_setting = engine.getValue('[Controls]', 'ShowDurationRemaining');
+    const current_setting = engine.getValue("[Controls]", "ShowDurationRemaining");
     if (current_setting === 0) {
         // currently showing elapsed, set to remaining
-        engine.setValue('[Controls]', 'ShowDurationRemaining', 1);
+        engine.setValue("[Controls]", "ShowDurationRemaining", 1);
     } else if (current_setting === 1) {
         // currently showing remaining, set to elapsed
-        engine.setValue('[Controls]', 'ShowDurationRemaining', 0);
+        engine.setValue("[Controls]", "ShowDurationRemaining", 0);
     } else {
         // currently showing both (that means we are showing remaining, set to elapsed
-        engine.setValue('[Controls]', 'ShowDurationRemaining', 0);
+        engine.setValue("[Controls]", "ShowDurationRemaining", 0);
     }
 };
 
@@ -1154,7 +1141,7 @@ MixtrackPlatinum.timeElapsedCallback = function(value, group, control) {
     // 0 = elapsed
     // 1 = remaining
     // 2 = both (we ignore this as the controller can't show both)
-    var on_off;
+    let on_off;
     if (value === 0) {
         // show elapsed
         on_off = 0x00;
@@ -1181,13 +1168,13 @@ MixtrackPlatinum.timeMs = function(deck, position, duration) {
 // still spinning
 MixtrackPlatinum.scratch_timer = []; // initialized before use (null is an acceptable value)
 MixtrackPlatinum.scratch_tick = [];  // initialized before use
-MixtrackPlatinum.resetScratchTimer = function (deck, tick) {
-    if (!MixtrackPlatinum.scratch_timer[deck]) return;
+MixtrackPlatinum.resetScratchTimer = function(deck, tick) {
+    if (!MixtrackPlatinum.scratch_timer[deck]) { return; }
     MixtrackPlatinum.scratch_tick[deck] = tick;
 };
 
-MixtrackPlatinum.startScratchTimer = function (deck) {
-    if (MixtrackPlatinum.scratch_timer[deck]) return;
+MixtrackPlatinum.startScratchTimer = function(deck) {
+    if (MixtrackPlatinum.scratch_timer[deck]) { return; }
 
     MixtrackPlatinum.scratch_tick[deck] = 0;
     MixtrackPlatinum.scratch_timer[deck] = engine.beginTimer(20, function() {
@@ -1195,14 +1182,14 @@ MixtrackPlatinum.startScratchTimer = function (deck) {
     });
 };
 
-MixtrackPlatinum.stopScratchTimer = function (deck) {
+MixtrackPlatinum.stopScratchTimer = function(deck) {
     if (MixtrackPlatinum.scratch_timer[deck]) {
         engine.stopTimer(MixtrackPlatinum.scratch_timer[deck]);
     }
     MixtrackPlatinum.scratch_timer[deck] = null;
 };
 
-MixtrackPlatinum.scratchTimerCallback = function (deck) {
+MixtrackPlatinum.scratchTimerCallback = function(deck) {
     // here we see if the platter is still physically moving even though the
     // platter is not being touched. For forward motion, we stop scratching
     // before the platter has physically stopped  and delay a little longer
@@ -1210,8 +1197,7 @@ MixtrackPlatinum.scratchTimerCallback = function (deck) {
     if ((MixtrackPlatinum.scratch_direction[deck] // forward
             && Math.abs(MixtrackPlatinum.scratch_tick[deck]) > 2)
         || (!MixtrackPlatinum.scratch_direction[deck] // backward
-            && Math.abs(MixtrackPlatinum.scratch_tick[deck]) > 1))
-    {
+            && Math.abs(MixtrackPlatinum.scratch_tick[deck]) > 1)) {
         // reset tick detection
         MixtrackPlatinum.scratch_tick[deck] = 0;
         return;
@@ -1220,15 +1206,15 @@ MixtrackPlatinum.scratchTimerCallback = function (deck) {
     MixtrackPlatinum.scratchDisable(deck);
 };
 
-MixtrackPlatinum.scratchDisable = function (deck) {
+MixtrackPlatinum.scratchDisable = function(deck) {
     MixtrackPlatinum.searching[deck] = false;
     MixtrackPlatinum.stopScratchTimer(deck);
     engine.scratchDisable(deck, false);
 };
 
-MixtrackPlatinum.scratchEnable = function (deck) {
-    var alpha = 1.0/8;
-    var beta = alpha/32;
+MixtrackPlatinum.scratchEnable = function(deck) {
+    const alpha = 1.0/8;
+    const beta = alpha/32;
 
     engine.scratchEnable(deck, 1240, 33+1/3, alpha, beta);
     MixtrackPlatinum.stopScratchTimer(deck);
@@ -1238,37 +1224,32 @@ MixtrackPlatinum.scratchEnable = function (deck) {
 // these arrays are indexed from 1, so we initialize them with 5 values
 MixtrackPlatinum.touching = [false, false, false, false, false];
 MixtrackPlatinum.searching = [false, false, false, false, false];
-MixtrackPlatinum.wheelTouch = function (channel, control, value, status, group) {
-    var deck = channel + 1;
+MixtrackPlatinum.wheelTouch = function(channel, control, value, status, group) {
+    const deck = channel + 1;
 
     // ignore touch events if not in vinyl mode
     if (!MixtrackPlatinum.shift
         && !MixtrackPlatinum.searching[deck]
         && !MixtrackPlatinum.wheel[channel]
-        && value != 0)
-    {
+        && value != 0) {
         return;
     }
 
-    MixtrackPlatinum.touching[deck] = 0x7F == value;
+    MixtrackPlatinum.touching[deck] = value == 0x7F;
 
 
     // don't start scratching if shift is pressed
     if (value === 0x7F
         && !MixtrackPlatinum.shift
-        && !MixtrackPlatinum.searching[deck])
-    {
+        && !MixtrackPlatinum.searching[deck]) {
         MixtrackPlatinum.scratchEnable(deck);
-    }
-    else if (value === 0x7F
+    } else if (value === 0x7F
              && (MixtrackPlatinum.shift
-                || MixtrackPlatinum.searching[deck]))
-    {
+                || MixtrackPlatinum.searching[deck])) {
         MixtrackPlatinum.scratchDisable(deck);
         MixtrackPlatinum.searching[deck] = true;
         MixtrackPlatinum.stopScratchTimer(deck);
-    }
-    else {    // If button up
+    } else {    // If button up
         MixtrackPlatinum.startScratchTimer(deck);
     }
 };
@@ -1278,10 +1259,10 @@ MixtrackPlatinum.wheelTouch = function (channel, control, value, status, group) 
 MixtrackPlatinum.scratch_direction = [null, null, null, null, null]; // true == forward
 MixtrackPlatinum.scratch_accumulator = [0, 0, 0, 0, 0];
 MixtrackPlatinum.last_scratch_tick = [0, 0, 0, 0, 0];
-MixtrackPlatinum.wheelTurn = function (channel, control, value, status, group) {
-    var deck = channel + 1;
-    var direction;
-    var newValue;
+MixtrackPlatinum.wheelTurn = function(channel, control, value, status, group) {
+    const deck = channel + 1;
+    let direction;
+    let newValue;
     if (value < 64) {
         direction = true;
     } else {
@@ -1291,7 +1272,7 @@ MixtrackPlatinum.wheelTurn = function (channel, control, value, status, group) {
     // if the platter is spun fast enough, value will wrap past the 64 midpoint
     // but the platter will be spinning in the opposite direction we expect it
     // to be
-    var delta = Math.abs(MixtrackPlatinum.last_scratch_tick[deck] - value);
+    const delta = Math.abs(MixtrackPlatinum.last_scratch_tick[deck] - value);
     if (MixtrackPlatinum.scratch_direction[deck] !== null && MixtrackPlatinum.scratch_direction[deck] != direction && delta < 64) {
         direction = !direction;
     }
@@ -1304,10 +1285,10 @@ MixtrackPlatinum.wheelTurn = function (channel, control, value, status, group) {
 
     // detect searching the track
     if (MixtrackPlatinum.searching[deck]) {
-        var position = engine.getValue(group, 'playposition');
-        if (position <= 0) position = 0;
-        if (position >= 1) position = 1;
-        engine.setValue(group, 'playposition', position + newValue * 0.0001);
+        let position = engine.getValue(group, "playposition");
+        if (position <= 0) { position = 0; }
+        if (position >= 1) { position = 1; }
+        engine.setValue(group, "playposition", position + newValue * 0.0001);
         MixtrackPlatinum.resetScratchTimer(deck, newValue);
         return;
     }
@@ -1316,8 +1297,7 @@ MixtrackPlatinum.wheelTurn = function (channel, control, value, status, group) {
     // being touched
     if (MixtrackPlatinum.scratch_direction[deck] === null) {
         MixtrackPlatinum.scratch_direction[deck] = direction;
-    }
-    else if (MixtrackPlatinum.scratch_direction[deck] != direction) {
+    } else if (MixtrackPlatinum.scratch_direction[deck] != direction) {
         if (!MixtrackPlatinum.touching[deck]) {
             MixtrackPlatinum.scratchDisable(deck);
         }
@@ -1338,41 +1318,40 @@ MixtrackPlatinum.wheelTurn = function (channel, control, value, status, group) {
         if (MixtrackPlatinum.scratch_accumulator[deck] > 61) {
             MixtrackPlatinum.scratch_accumulator[deck] -= 61;
             if (direction) { // forward
-                engine.setParameter(group, 'beatjump_1_forward', 1);
+                engine.setParameter(group, "beatjump_1_forward", 1);
             } else {
-                engine.setParameter(group, 'beatjump_1_backward', 1);
+                engine.setParameter(group, "beatjump_1_backward", 1);
             }
         }
     }
     // handle pitch bending
     else {
-        engine.setValue(group, 'jog', newValue * 0.1); // Pitch bend
+        engine.setValue(group, "jog", newValue * 0.1); // Pitch bend
     }
 };
 
 MixtrackPlatinum.wheel = []; // initialized in the MixtrackPlatinum.init() function
-MixtrackPlatinum.wheelToggle = function (channel, control, value, status, group) {
-    if (value != 0x7F) return;
+MixtrackPlatinum.wheelToggle = function(channel, control, value, status, group) {
+    if (value != 0x7F) { return; }
     MixtrackPlatinum.wheel[channel] = !MixtrackPlatinum.wheel[channel];
-    var on_off = 0x01;
-    if (MixtrackPlatinum.wheel[channel]) on_off = 0x7F;
+    let on_off = 0x01;
+    if (MixtrackPlatinum.wheel[channel]) { on_off = 0x7F; }
     midi.sendShortMsg(0x90 | channel, 0x07, on_off);
 };
 
-MixtrackPlatinum.deckSwitch = function (channel, control, value, status, group) {
-    var deck = channel + 1;
+MixtrackPlatinum.deckSwitch = function(channel, control, value, status, group) {
+    const deck = channel + 1;
     MixtrackPlatinum.decks[deck].setActive(value == 0x7F);
 
     // change effects racks
     if (MixtrackPlatinum.decks[deck].active && (channel == 0x00 || channel == 0x02)) {
         MixtrackPlatinum.effects[1].setCurrentUnit(deck);
-    }
-    else if (MixtrackPlatinum.decks[deck].active && (channel == 0x01 || channel == 0x03)) {
+    } else if (MixtrackPlatinum.decks[deck].active && (channel == 0x01 || channel == 0x03)) {
         MixtrackPlatinum.effects[2].setCurrentUnit(deck);
     }
 
     // also zero vu meters
-    if (value != 0x7F) return;
+    if (value != 0x7F) { return; }
     midi.sendShortMsg(0xBF, 0x44, 0);
     midi.sendShortMsg(0xBF, 0x45, 0);
 };
@@ -1385,38 +1364,32 @@ MixtrackPlatinum.pflToggle = function(value, group, control) {
 
 MixtrackPlatinum.vuCallback = function(value, group, control) {
     // the top LED lights up at 81
-    var level = value * 80;
+    let level = value * 80;
 
     // if any channel pfl is active, show channel levels
-    if (engine.getValue('[Channel1]', 'pfl')
-        || engine.getValue('[Channel2]', 'pfl')
-        || engine.getValue('[Channel3]', 'pfl')
-        || engine.getValue('[Channel4]', 'pfl'))
-    {
+    if (engine.getValue("[Channel1]", "pfl")
+        || engine.getValue("[Channel2]", "pfl")
+        || engine.getValue("[Channel3]", "pfl")
+        || engine.getValue("[Channel4]", "pfl")) {
         if (engine.getValue(group, "PeakIndicator")) {
             level = 81;
         }
 
-        if (group == '[Channel1]' && MixtrackPlatinum.decks[1].active) {
+        if (group == "[Channel1]" && MixtrackPlatinum.decks[1].active) {
             midi.sendShortMsg(0xBF, 0x44, level);
-        }
-        else if (group == '[Channel3]' && MixtrackPlatinum.decks[3].active) {
+        } else if (group == "[Channel3]" && MixtrackPlatinum.decks[3].active) {
             midi.sendShortMsg(0xBF, 0x44, level);
-        }
-        else if (group == '[Channel2]' && MixtrackPlatinum.decks[2].active) {
+        } else if (group == "[Channel2]" && MixtrackPlatinum.decks[2].active) {
+            midi.sendShortMsg(0xBF, 0x45, level);
+        } else if (group == "[Channel4]" && MixtrackPlatinum.decks[4].active) {
             midi.sendShortMsg(0xBF, 0x45, level);
         }
-        else if (group == '[Channel4]' && MixtrackPlatinum.decks[4].active) {
-            midi.sendShortMsg(0xBF, 0x45, level);
-        }
-    }
-    else if (group == '[Master]' && control == 'VuMeterL') {
+    } else if (group == "[Master]" && control == "VuMeterL") {
         if (engine.getValue(group, "PeakIndicatorL")) {
             level = 81;
         }
         midi.sendShortMsg(0xBF, 0x44, level);
-    }
-    else if (group == '[Master]' && control == 'VuMeterR') {
+    } else if (group == "[Master]" && control == "VuMeterR") {
         if (engine.getValue(group, "PeakIndicatorR")) {
             level = 81;
         }
@@ -1427,7 +1400,7 @@ MixtrackPlatinum.vuCallback = function(value, group, control) {
 
 // track the state of the shift key
 MixtrackPlatinum.shift = false;
-MixtrackPlatinum.shiftToggle = function (channel, control, value, status, group) {
+MixtrackPlatinum.shiftToggle = function(channel, control, value, status, group) {
     MixtrackPlatinum.shift = value == 0x7F;
 
     if (MixtrackPlatinum.shift) {
@@ -1442,8 +1415,7 @@ MixtrackPlatinum.shiftToggle = function (channel, control, value, status, group)
         MixtrackPlatinum.scratch_accumulator[2] = 0;
         MixtrackPlatinum.scratch_accumulator[3] = 0;
         MixtrackPlatinum.scratch_accumulator[4] = 0;
-    }
-    else {
+    } else {
         MixtrackPlatinum.decks.unshift();
         MixtrackPlatinum.sampler_all.unshift();
         MixtrackPlatinum.effects.unshift();

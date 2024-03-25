@@ -57,7 +57,7 @@ DJCi300.vuMeterUpdateMaster = function(value, _group, _control) {
 
 DJCi300.vuMeterUpdateDeck = function(value, group, _control, _status) {
     value = (value * 122) + 5;
-    var status = (group === "[Channel1]") ? 0xB1 : 0xB2;
+    const status = (group === "[Channel1]") ? 0xB1 : 0xB2;
     midi.sendShortMsg(status, 0x40, value);
 };
 
@@ -66,8 +66,8 @@ DJCi300.init = function() {
     DJCi300.scratchButtonState = true;
     // Scratch Action
     DJCi300.scratchAction = {
-    1: DJCi300.kScratchActionNone,
-    2: DJCi300.kScratchActionNone
+        1: DJCi300.kScratchActionNone,
+        2: DJCi300.kScratchActionNone
     };
 
     // Turn On Vinyl buttons LED(one for each deck).
@@ -77,20 +77,20 @@ DJCi300.init = function() {
     //Turn On Browser button LED
     midi.sendShortMsg(0x90, 0x04, 0x05);
 
-   //Softtakeover for Pitch fader
-   engine.softTakeover("[Channel1]", "rate", true);
-   engine.softTakeover("[Channel2]", "rate", true);
-   engine.softTakeoverIgnoreNextValue("[Channel1]", "rate");
-   engine.softTakeoverIgnoreNextValue("[Channel2]", "rate");
+    //Softtakeover for Pitch fader
+    engine.softTakeover("[Channel1]", "rate", true);
+    engine.softTakeover("[Channel2]", "rate", true);
+    engine.softTakeoverIgnoreNextValue("[Channel1]", "rate");
+    engine.softTakeoverIgnoreNextValue("[Channel2]", "rate");
 
-   // Connect the VUMeters
+    // Connect the VUMeters
     engine.connectControl("[Channel1]", "VuMeter", "DJCi300.vuMeterUpdateDeck");
-	engine.getValue("[Channel1]", "VuMeter", "DJCi300.vuMeterUpdateDeck");
+    engine.getValue("[Channel1]", "VuMeter", "DJCi300.vuMeterUpdateDeck");
     engine.connectControl("[Channel2]", "VuMeter", "DJCi300.vuMeterUpdateDeck");
-	engine.getValue("[Channel2]", "VuMeter", "DJCi300.vuMeterUpdateDeck");
+    engine.getValue("[Channel2]", "VuMeter", "DJCi300.vuMeterUpdateDeck");
     engine.connectControl("[Master]", "VuMeterL", "DJCi300.vuMeterUpdateMaster");
     engine.connectControl("[Master]", "VuMeterR", "DJCi300.vuMeterUpdateMaster");
-	engine.getValue("[Master]", "VuMeterL", "DJCi300.vuMeterUpdateMaster");
+    engine.getValue("[Master]", "VuMeterL", "DJCi300.vuMeterUpdateMaster");
     engine.getValue("[Master]", "VuMeterR", "DJCi300.vuMeterUpdateMaster");
 
     // Ask the controller to send all current knob/slider values over MIDI, which will update
@@ -112,8 +112,8 @@ DJCi300.vinylButton = function(_channel, _control, value, status, _group) {
 };
 
 DJCi300._scratchEnable = function(deck) {
-    var alpha = 1.0/8;
-    var beta = alpha/32;
+    const alpha = 1.0/8;
+    const beta = alpha/32;
     engine.scratchEnable(deck, 248, 33 + 1/3, alpha, beta);
 };
 
@@ -126,7 +126,7 @@ DJCi300._convertWheelRotation = function(value) {
 
 // The touch action on the jog wheel's top surface
 DJCi300.wheelTouch = function(channel, control, value, _status, _group) {
-    var deck = channel;
+    const deck = channel;
     if (value > 0) {
         //  Touching the wheel.
         if (engine.getValue("[Channel" + deck + "]", "play") !== 1 || DJCi300.scratchButtonState) {
@@ -144,7 +144,7 @@ DJCi300.wheelTouch = function(channel, control, value, _status, _group) {
 
 // The touch action on the jog wheel's top surface while holding shift
 DJCi300.wheelTouchShift = function(channel, control, value, _status, _group) {
-    var deck = channel - 3;
+    const deck = channel - 3;
     // We always enable scratching regardless of button state.
     if (value > 0) {
         DJCi300._scratchEnable(deck);
@@ -158,7 +158,7 @@ DJCi300.wheelTouchShift = function(channel, control, value, _status, _group) {
 
 // Scratching on the jog wheel (rotating it while pressing the top surface)
 DJCi300.scratchWheel = function(channel, control, value, status, _group) {
-    var deck;
+    let deck;
     switch (status) {
     case 0xB1:
     case 0xB4:
@@ -171,8 +171,8 @@ DJCi300.scratchWheel = function(channel, control, value, status, _group) {
     default:
         return;
     }
-    var interval = DJCi300._convertWheelRotation(value);
-    var scratchAction = DJCi300.scratchAction[deck];
+    const interval = DJCi300._convertWheelRotation(value);
+    const scratchAction = DJCi300.scratchAction[deck];
     if (scratchAction === DJCi300.kScratchActionScratch) {
         engine.scratchTick(deck, interval * DJCi300.scratchScale);
     } else if (scratchAction === DJCi300.kScratchActionSeek) {
@@ -187,7 +187,7 @@ DJCi300.scratchWheel = function(channel, control, value, status, _group) {
 
 // Bending on the jog wheel (rotating using the edge)
 DJCi300.bendWheel = function(channel, control, value, _status, _group) {
-    var interval = DJCi300._convertWheelRotation(value);
+    const interval = DJCi300._convertWheelRotation(value);
     engine.setValue(
         "[Channel" + channel + "]", "jog", interval * DJCi300.bendScale);
 };

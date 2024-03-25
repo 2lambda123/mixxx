@@ -43,40 +43,56 @@ SCS3M.receive = function(channel, control, value, status) {
  * Thanks to Sean M. Pappalardo for the original SCS3 mappings.
  */
 SCS3M.Device = function() {
-    var NoteOn = 0x90;
-    var NoteOff = 0x80;
-    var CC = 0xB0;
-    var CM = 0xBF; /* this is used for slider mode changes (absolute/relative, sending a control change on channel 16!?) */
+    const NoteOn = 0x90;
+    const NoteOff = 0x80;
+    const CC = 0xB0;
+    const CM = 0xBF; /* this is used for slider mode changes (absolute/relative, sending a control change on channel 16!?) */
 
-    var black = 0x00;
-    var blue = 0x01;
-    var red = 0x02;
-    var purple = blue | red;
+    const black = 0x00;
+    const blue = 0x01;
+    const red = 0x02;
+    const purple = blue | red;
 
+    /**
+     *
+     */
     function Logo() {
-        var id = 0x69;
+        const id = 0x69;
         return {
             on: [NoteOn, id, 0x01],
             off: [NoteOn, id, 0x00]
         };
     }
 
+    /**
+     * @param id
+     * @param lights
+     */
     function Meter(id, lights) {
+        /**
+         * @param value
+         */
         function plain(value) {
-            if (value <= 0.0) return 1;
-            if (value >= 1.0) return lights;
+            if (value <= 0.0) { return 1; }
+            if (value >= 1.0) { return lights; }
             return 1 + Math.round(value * (lights - 1));
         }
 
+        /**
+         * @param value
+         */
         function clamped(value) {
-            if (value <= 0.0) return 1;
-            if (value >= 1.0) return lights;
+            if (value <= 0.0) { return 1; }
+            if (value >= 1.0) { return lights; }
             return Math.round(value * (lights - 2) + 1.5);
         }
 
+        /**
+         * @param value
+         */
         function zeroclamped(value) {
-            if (value <= 0.0) return 0;
-            if (value >= 1.0) return lights;
+            if (value <= 0.0) { return 0; }
+            if (value >= 1.0) { return lights; }
             return Math.round(value * (lights - 1) + 0.5);
         }
         return {
@@ -95,9 +111,14 @@ SCS3M.Device = function() {
         };
     }
 
+    /**
+     * @param id
+     * @param lights
+     * @param fields
+     */
     function Slider(id, lights, fields) {
-        var touchfields = {};
-        for (var fieldn in fields) {
+        const touchfields = {};
+        for (const fieldn in fields) {
             touchfields[fieldn] = {
                 touch: [NoteOn, fields[fieldn]],
                 release: [NoteOff, fields[fieldn]],
@@ -114,6 +135,9 @@ SCS3M.Device = function() {
         };
     }
 
+    /**
+     * @param id
+     */
     function Light(id) {
         return {
             black: [NoteOn, id, black],
@@ -123,6 +147,9 @@ SCS3M.Device = function() {
         };
     }
 
+    /**
+     * @param id
+     */
     function Touch(id) {
         return {
             light: Light(id),
@@ -131,16 +158,26 @@ SCS3M.Device = function() {
         };
     }
 
+    /**
+     * @param side
+     */
     function Side(side) {
+        /**
+         * @param left
+         * @param right
+         */
         function either(left, right) {
-            return ('left' === side) ? left : right;
+            return (side === "left") ? left : right;
         }
 
+        /**
+         *
+         */
         function Deck() {
             // The left deck button has a higher address than the right button,
             // for all the other controls the left one has a lower address.
             // I wonder why.
-            var id = either(0x10, 0x0F);
+            const id = either(0x10, 0x0F);
             return {
                 light: function(bits) {
                     return [NoteOn, id, (bits[0] ? 1 : 0) | (bits[1] ? 2 : 0)];
@@ -150,14 +187,20 @@ SCS3M.Device = function() {
             };
         }
 
+        /**
+         *
+         */
         function Pitch() {
             return Slider(either(0x00, 0x01), 7, {
-                left:   either(0x51, 0x54),
+                left: either(0x51, 0x54),
                 middle: either(0x52, 0x55),
-                right:  either(0x53, 0x56),
+                right: either(0x53, 0x56),
             });
         }
 
+        /**
+         *
+         */
         function Eq() {
             return {
                 low: Slider(either(0x02, 0x03), 7),
@@ -166,6 +209,9 @@ SCS3M.Device = function() {
             };
         }
 
+        /**
+         *
+         */
         function Modes() {
             return {
                 fx: Touch(either(0x0A, 0x0B)),
@@ -173,10 +219,16 @@ SCS3M.Device = function() {
             };
         }
 
+        /**
+         *
+         */
         function Gain() {
             return Slider(either(0x08, 0x09), 7);
         }
 
+        /**
+         *
+         */
         function Touches() {
             return [
                 Touch(either(0x00, 0x01)),
@@ -186,6 +238,9 @@ SCS3M.Device = function() {
             ];
         }
 
+        /**
+         *
+         */
         function Phones() {
             return Touch(either(0x08, 0x09));
         }
@@ -207,8 +262,8 @@ SCS3M.Device = function() {
         flat: [0xF0, 0x00, 0x01, 0x60, 0x15, 0x01, 0xF7],
         lightsoff: [CC, 0x7B, 0x00],
         logo: Logo(),
-        left: Side('left'),
-        right: Side('right'),
+        left: Side("left"),
+        right: Side("right"),
         master: Touch(0x0E),
         crossfader: Slider(0x0A, 11)
     };
@@ -216,32 +271,35 @@ SCS3M.Device = function() {
 
 // debugging helper
 var printmess = function(message, text) {
-    var i;
-    var s = '';
+    let i;
+    let s = "";
 
     for (i in message) {
-        s = s + ('0' + message[i].toString(16)).slice(-2);
+        s = s + ("0" + message[i].toString(16)).slice(-2);
     }
-    print("Midi " + s + (text ? ' ' + text : ''));
+    print("Midi " + s + (text ? " " + text : ""));
 };
 
 SCS3M.Agent = function(device) {
     // Cache last sent bytes to avoid sending duplicates.
     // The second byte of each message (controller id) is used as key to hold
     // the last sent message for each controller.
-    var last = {};
+    const last = {};
 
     // Queue of messages to send delayed after modeset()
-    var loading = false;
-    var throttling = false;
-    var pipe = [];
+    let loading = false;
+    let throttling = false;
+    let pipe = [];
 
     // Handlers for received messages
-    var receivers = {};
+    let receivers = {};
 
     // Connected engine controls
-    var watched = {};
+    const watched = {};
 
+    /**
+     *
+     */
     function clear() {
         receivers = {};
         pipe = [];
@@ -249,7 +307,7 @@ SCS3M.Agent = function(device) {
         // I'd like to disconnect everything on clear, but that doesn't work when using closure callbacks, I guess I'd have to pass the callback function as string name
         // I'd have to invent function names for all handlers
         // Instead I'm not gonna bother and just let the callbacks do nothing
-        for (var ctrl in watched) {
+        for (const ctrl in watched) {
             if (watched.hasOwnProperty(ctrl)) {
                 watched[ctrl] = [];
             }
@@ -258,9 +316,14 @@ SCS3M.Agent = function(device) {
 
     // This function receives Midi messages from the SCS.3m
     // See the XML mapping for all the messages caught
+    /**
+     * @param type
+     * @param control
+     * @param value
+     */
     function receive(type, control, value) {
-        var address = (type << 8) + control;
-        var handler = receivers[address];
+        const address = (type << 8) + control;
+        const handler = receivers[address];
         if (handler) {
             handler(value);
         }
@@ -269,20 +332,29 @@ SCS3M.Agent = function(device) {
     // Register a handler to listen for messages
     // control: an array with at least two message bytes (type and control id)
     // handler: callback function that will be called each time a value is received
+    /**
+     * @param control
+     * @param handler
+     */
     function expect(control, handler) {
-        var address = (control[0] << 8) + control[1];
+        const address = (control[0] << 8) + control[1];
         receivers[address] = handler;
     }
 
+    /**
+     * @param channel
+     * @param control
+     * @param handler
+     */
     function watchRegister(channel, control, handler) {
         // Indirection through a registry that keeps all watched controls
-        var ctrl = channel + control;
+        const ctrl = channel + control;
 
         if (!watched[ctrl]) {
             watched[ctrl] = [];
             engine.connectControl(channel, control, function(value, group, control) {
-                var handlers = watched[ctrl];
-                for (var i in handlers) {
+                const handlers = watched[ctrl];
+                for (const i in handlers) {
                     handlers[i]();
                 }
             });
@@ -293,6 +365,11 @@ SCS3M.Agent = function(device) {
 
     // Register a handler for changes in engine values
     // This is an abstraction over engine.getParameter()
+    /**
+     * @param channel
+     * @param control
+     * @param handler
+     */
     function watch(channel, control, handler) {
         watchRegister(channel, control, function() {
             handler(engine.getParameter(channel, control));
@@ -314,11 +391,15 @@ SCS3M.Agent = function(device) {
     // every time one of the values changes.
     // controls: list of channel/control pairs to watch
     // handler: will receive list of control values as parameter in same order
+    /**
+     * @param controls
+     * @param handler
+     */
     function watchmulti(controls, handler) {
-        var values = [];
-        var watchControl = function(controlpos, controlgroup) {
-            var channel = controlgroup[0];
-            var control = controlgroup[1];
+        const values = [];
+        const watchControl = function(controlpos, controlgroup) {
+            const channel = controlgroup[0];
+            const control = controlgroup[1];
             values[controlpos] = engine.getParameter(channel, control);
             watchRegister(channel, control, function() {
                 values[controlpos] = engine.getParameter(channel, control);
@@ -326,7 +407,7 @@ SCS3M.Agent = function(device) {
             });
         };
 
-        for (var i in controls) {
+        for (const i in controls) {
             watchControl(i, controls[i]);
         }
         handler(values);
@@ -339,13 +420,18 @@ SCS3M.Agent = function(device) {
     // Param extra: do not record message as last state
     // Returns whether the massage was sent
     // False is returned if the message was sent before.
+    /**
+     * @param message
+     * @param force
+     * @param extra
+     */
     function send(message, force, extra) {
-        if (!message){
+        if (!message) {
             print("SCS3 warning: send function received invalid message");
             return; // :-(
         }
 
-        var address = (message[0] << 8) + message[1];
+        const address = (message[0] << 8) + message[1];
 
         if (!force && last[address] === message[2]) {
             return false; // Not repeating same message
@@ -361,6 +447,9 @@ SCS3M.Agent = function(device) {
     }
 
     // Wrapper function for send() that delays messages after modesetting
+    /**
+     * @param message
+     */
     function tell(message) {
         if (throttling) {
             pipe.push(message);
@@ -378,12 +467,15 @@ SCS3M.Agent = function(device) {
     // mode, or send just one long message in the list. Transmission of
     // subsequent messages will be delayed to give the device some time to apply
     // the changes.
+    /**
+     * @param messages
+     */
     function modeset(messages) {
-        var sent = true;
+        let sent = true;
 
         // Modeset messages are comprised of the actual modeset message and
         // a termination message that must be sent after.
-        var message = messages[0];
+        const message = messages[0];
 
         if (message) {
             if (message.length > 3) {
@@ -406,26 +498,29 @@ SCS3M.Agent = function(device) {
     }
 
     var flushModeset = function() {
-        var message;
+        let message;
 
         // Now we can flush the rest of the messages.
         // On init, some controls are left unlit if the messages are sent
         // without delay. The causes are unclear. Sending only a few messages
         // per tick seems to work ok.
-        var limit = 5; // Determined experimentally
+        let limit = 5; // Determined experimentally
         while (pipe.length) {
             message = pipe.shift();
             send(message);
-            if (loading && limit-- < 1) return;
+            if (loading && limit-- < 1) { return; }
         }
 
-        if (throttling) engine.stopTimer(throttling);
+        if (throttling) { engine.stopTimer(throttling); }
         throttling = false;
         loading = false;
     };
 
     // Map engine values in the range [0..1] to lights
     // translator maps from [0..1] to a midi message (three bytes)
+    /**
+     * @param translator
+     */
     function patch(translator) {
         return function(value) {
             tell(translator(value));
@@ -433,6 +528,9 @@ SCS3M.Agent = function(device) {
     }
 
     // Cut off at 0.01 because it drops off very slowly
+    /**
+     * @param translator
+     */
     function vupatch(translator) {
         return function(value) {
             value = value * 1.01 - 0.01;
@@ -441,6 +539,9 @@ SCS3M.Agent = function(device) {
     }
 
     // accelerate away from 0.5 so that small changes become visible faster
+    /**
+     * @param translator
+     */
     function offcenter(translator) {
         return function(value) {
             // If you want to adjust it, fiddle with the exponent (second argument to pow())
@@ -448,6 +549,10 @@ SCS3M.Agent = function(device) {
         };
     }
 
+    /**
+     * @param off
+     * @param on
+     */
     function binarylight(off, on) {
         return function(value) {
             tell(value ? on : off);
@@ -455,6 +560,10 @@ SCS3M.Agent = function(device) {
     }
 
     // absolute control
+    /**
+     * @param channel
+     * @param control
+     */
     function set(channel, control) {
         return function(value) {
             engine.setParameter(channel, control,
@@ -463,12 +572,21 @@ SCS3M.Agent = function(device) {
         };
     }
 
+    /**
+     * @param channel
+     * @param control
+     * @param value
+     */
     function setconst(channel, control, value) {
         return function() {
             engine.setParameter(channel, control, value);
         };
     }
 
+    /**
+     * @param channel
+     * @param control
+     */
     function reset(channel, control) {
         return function() {
             engine.reset(channel, control);
@@ -476,9 +594,14 @@ SCS3M.Agent = function(device) {
     }
 
     // relative control
+    /**
+     * @param channel
+     * @param control
+     * @param factor
+     */
     function budge(channel, control, factor) {
-        if (factor === undefined) factor = 1;
-        var mult = factor / 128;
+        if (factor === undefined) { factor = 1; }
+        const mult = factor / 128;
 
         return function(offset) {
             engine.setValue(channel, control,
@@ -488,55 +611,65 @@ SCS3M.Agent = function(device) {
     }
 
     // switch
+    /**
+     * @param channel
+     * @param control
+     */
     function toggle(channel, control) {
         return function() {
             engine.setValue(channel, control, !engine.getValue(channel, control));
         };
     }
 
+    /**
+     *
+     */
     function Switch() {
-        var engaged = false;
+        let engaged = false;
 
         return {
-            'change': function(state) {
+            "change": function(state) {
                 state = !!(state);
-                var changed = engaged !== state;
+                const changed = engaged !== state;
                 engaged = state;
                 return changed;
             },
-            'engage': function() {
+            "engage": function() {
                 engaged = true;
             },
-            'cancel': function() {
+            "cancel": function() {
                 engaged = false;
             },
-            'toggle': function() {
+            "toggle": function() {
                 engaged = !engaged;
             },
-            'engaged': function() {
+            "engaged": function() {
                 return engaged;
             },
-            'choose': function(off, on) {
+            "choose": function(off, on) {
                 return engaged ? on : off;
             }
         };
     }
 
+    /**
+     * @param limit
+     */
     function HoldLimit(limit) {
-        var start = false;
+        let start = false;
 
-        var early = function() {
+        const early = function() {
             return limit > new Date() - start;
         };
 
         return {
-            'hold': function() {
+            "hold": function() {
                 start = new Date();
             },
 
-            'releaseTrigger': function(onEarly) {
+            "releaseTrigger": function(onEarly) {
                 return function() {
-                    if (!start) return;
+                    if (!start) { return; }
                     if (early()) {
                         onEarly();
                     }
@@ -544,21 +677,21 @@ SCS3M.Agent = function(device) {
                 };
             },
 
-            'early': function() {
-                if (!start) return;
+            "early": function() {
+                if (!start) { return; }
                 return early();
             },
 
-            'late': function() {
-                if (!start) return;
+            "late": function() {
+                if (!start) { return; }
                 return early();
             },
 
-            'held': function() {
+            "held": function() {
                 return !!start;
             },
 
-            'choose': function(normalVal, heldVal) {
+            "choose": function(normalVal, heldVal) {
                 return start ? heldVal : normalVal;
             }
         };
@@ -567,11 +700,14 @@ SCS3M.Agent = function(device) {
     // HoldDelayedSwitches can be engaged, and they can be held.
     // A switch that is held for less than 200 ms will toggle.
     // After 200ms it will enter held-mode.
+    /**
+     *
+     */
     function HoldDelayedSwitch() {
-        var sw = Switch();
+        const sw = Switch();
 
-        var held = false;
-        var heldBegin = false;
+        let held = false;
+        let heldBegin = false;
 
         sw.hold = function(onHeld) {
             return function() {
@@ -581,14 +717,14 @@ SCS3M.Agent = function(device) {
                     if (heldBegin) {
                         heldBegin = false;
                         held = true;
-                        if (onHeld) onHeld();
+                        if (onHeld) { onHeld(); }
                     }
                 });
             };
         };
 
         sw.release = function() {
-            if (heldBegin) sw.toggle();
+            if (heldBegin) { sw.toggle(); }
             held = false;
             heldBegin = false;
         };
@@ -600,106 +736,131 @@ SCS3M.Agent = function(device) {
         return sw;
     }
 
+    /**
+     * @param preset
+     * @param initialSubMode
+     */
     function Multiswitch(preset, initialSubMode) {
-        var engaged = preset;
-        var subMode = initialSubMode;
+        let engaged = preset;
+        let subMode = initialSubMode;
         return {
-            'engage': function(pos) {
+            "engage": function(pos) {
                 engaged = pos;
                 if (engaged !== preset) {
                     subMode = pos;
                 }
             },
-            'engageSub': function() {
+            "engageSub": function() {
                 engaged = subMode;
             },
-            'cancel': function() {
+            "cancel": function() {
                 engaged = preset;
             },
-            'engaged': function(pos) {
+            "engaged": function(pos) {
                 return engaged === pos;
             },
-            'choose': function(pos, off, on) {
+            "choose": function(pos, off, on) {
                 return (engaged === pos) ? on : off;
             }
         };
     }
 
-    var master = Switch(); // Whether master key is held
-    var deck = {
+    const master = Switch(); // Whether master key is held
+    const deck = {
         left: HoldDelayedSwitch(), // off: channel1, on: channel3
         right: HoldDelayedSwitch() // off: channel2, on: channel4
     };
 
-    var overlayA = Multiswitch('eq', 0);
-    var overlayB = Multiswitch('eq', SCS3M.eqModePerDeck ? 1 : 0);
-    var overlayC;
-    var overlayD;
+    const overlayA = Multiswitch("eq", 0);
+    const overlayB = Multiswitch("eq", SCS3M.eqModePerDeck ? 1 : 0);
+    let overlayC;
+    let overlayD;
     if (SCS3M.eqModePerDeck) {
-        overlayC = Multiswitch('eq', 2);
-        overlayD = Multiswitch('eq', 3);
+        overlayC = Multiswitch("eq", 2);
+        overlayD = Multiswitch("eq", 3);
     } else {
         overlayC = overlayA;
         overlayD = overlayB;
     }
 
-    var overlay = {
+    const overlay = {
         left: [overlayA, overlayC],
         right: [overlayB, overlayD],
     };
 
-    var eqheld = {
+    const eqheld = {
         left: Switch(),
         right: Switch()
     };
 
-    var fxHeld = {
+    const fxHeld = {
         left: HoldLimit(200),
         right: HoldLimit(200)
     };
 
-    var touchheld = {
-        left: Multiswitch('none'),
-        right: Multiswitch('none')
+    const touchheld = {
+        left: Multiswitch("none"),
+        right: Multiswitch("none")
     };
 
+    /**
+     *
+     */
     function remap() {
         clear();
         patchage();
     }
 
     // Remap for chainig with handlers
+    /**
+     * @param handler
+     */
     function repatch(handler) {
         return function(value) {
-            var ret = handler(value);
+            const ret = handler(value);
             remap();
             return ret;
         };
     }
 
+    /**
+     *
+     */
     function patchage() {
 
+        /**
+         * @param side
+         */
         function Side(side) {
-            var part = device[side];
-            var deckside = deck[side];
+            const part = device[side];
+            const deckside = deck[side];
 
             // Switch deck/channel when button is touched
             expect(part.deck.touch, deckside.hold(remap));
             expect(part.deck.release, repatch(deckside.release));
 
+            /**
+             * @param left
+             * @param right
+             */
             function either(left, right) {
-                return (side === 'left') ? left : right;
+                return (side === "left") ? left : right;
             }
 
-            var channelno = deck[side].choose(either(1, 2), either(3, 4));
-            var channel = '[Channel' + channelno + ']';
-            var effectchannel = '[QuickEffectRack1_' + channel + ']';
-            var eqsideheld = eqheld[side];
-            var touchsideheld = touchheld[side];
-            var sideoverlay = overlay[side][deckside.choose(0, 1)];
+            const channelno = deck[side].choose(either(1, 2), either(3, 4));
+            const channel = "[Channel" + channelno + "]";
+            const effectchannel = "[QuickEffectRack1_" + channel + "]";
+            const eqsideheld = eqheld[side];
+            const touchsideheld = touchheld[side];
+            const sideoverlay = overlay[side][deckside.choose(0, 1)];
 
             // Light the corresponding deck (channel 1: A, channel 2: B, channel 3: C, channel 4: D)
             // Make the lights blink on each beat
+            /**
+             * @param translator
+             * @param activepos
+             * @param held
+             */
             function beatlight(translator, activepos, held) {
                 return function(bits) {
                     bits = bits.slice(); // clone
@@ -716,31 +877,31 @@ SCS3M.Agent = function(device) {
                 };
             }
             watchmulti([
-                ['[Channel' + either(1, 2) + ']', 'beat_active'],
-                ['[Channel' + either(3, 4) + ']', 'beat_active'],
+                ["[Channel" + either(1, 2) + "]", "beat_active"],
+                ["[Channel" + either(3, 4) + "]", "beat_active"],
             ], patch(beatlight(part.deck.light, deckside.choose(0, 1), deckside.held())));
 
             if (!master.engaged()) {
-                if (sideoverlay.engaged('eq')) {
+                if (sideoverlay.engaged("eq")) {
                     modeset(part.pitch.mode.relative);
                     expect(part.pitch.slide, eqsideheld.choose(
-                        budge(effectchannel, 'super1', 0.5),
-                        reset(effectchannel, 'super1')
+                        budge(effectchannel, "super1", 0.5),
+                        reset(effectchannel, "super1")
                     ));
-                    watch(effectchannel, 'super1', offcenter(patch(part.pitch.meter.centerbar)));
+                    watch(effectchannel, "super1", offcenter(patch(part.pitch.meter.centerbar)));
                 }
             }
 
-            if (sideoverlay.engaged('eq')) {
-                var eff = "[EqualizerRack1_" + channel + "_Effect1]";
-                var op = eqsideheld.choose(set, reset);
-                expect(part.eq.low.slide, op(eff, 'parameter1'));
-                expect(part.eq.mid.slide, op(eff, 'parameter2'));
-                expect(part.eq.high.slide, op(eff, 'parameter3'));
+            if (sideoverlay.engaged("eq")) {
+                const eff = "[EqualizerRack1_" + channel + "_Effect1]";
+                const op = eqsideheld.choose(set, reset);
+                expect(part.eq.low.slide, op(eff, "parameter1"));
+                expect(part.eq.mid.slide, op(eff, "parameter2"));
+                expect(part.eq.high.slide, op(eff, "parameter3"));
 
-                watch(eff, 'parameter1', patch(offcenter(part.eq.low.meter.centerbar)));
-                watch(eff, 'parameter2', patch(offcenter(part.eq.mid.meter.centerbar)));
-                watch(eff, 'parameter3', patch(offcenter(part.eq.high.meter.centerbar)));
+                watch(eff, "parameter1", patch(offcenter(part.eq.low.meter.centerbar)));
+                watch(eff, "parameter2", patch(offcenter(part.eq.mid.meter.centerbar)));
+                watch(eff, "parameter3", patch(offcenter(part.eq.high.meter.centerbar)));
             }
 
             expect(part.modes.eq.touch, repatch(function() {
@@ -748,19 +909,19 @@ SCS3M.Agent = function(device) {
                 sideoverlay.cancel();
             }));
             expect(part.modes.eq.release, repatch(eqsideheld.cancel));
-            tell(part.modes.eq.light[eqsideheld.choose(sideoverlay.choose('eq', 'blue', 'red'), 'purple')]);
+            tell(part.modes.eq.light[eqsideheld.choose(sideoverlay.choose("eq", "blue", "red"), "purple")]);
 
-            var fxHeldSide = fxHeld[side];
+            const fxHeldSide = fxHeld[side];
 
-            var fxMap = function(tnr) {
-                var softbutton = part.touches[tnr];
-                var fxchannel = channel;
+            const fxMap = function(tnr) {
+                const softbutton = part.touches[tnr];
+                let fxchannel = channel;
                 if (master.engaged()) {
-                    fxchannel = either('[Headphone]', '[Master]');
+                    fxchannel = either("[Headphone]", "[Master]");
                 }
-                var effectunit = '[EffectRack1_EffectUnit' + (tnr + 1) + ']';
-                var effectunit_enable = 'group_' + fxchannel + '_enable';
-                var effectunit_effect = '[EffectRack1_EffectUnit' + (tnr + 1) + '_Effect1]';
+                const effectunit = "[EffectRack1_EffectUnit" + (tnr + 1) + "]";
+                const effectunit_enable = "group_" + fxchannel + "_enable";
+                const effectunit_effect = "[EffectRack1_EffectUnit" + (tnr + 1) + "_Effect1]";
 
                 if (fxHeldSide.held() || master.engaged()) {
                     expect(softbutton.touch, toggle(effectunit, effectunit_enable));
@@ -791,40 +952,40 @@ SCS3M.Agent = function(device) {
                         tell(part.pitch.meter.expand(0.3));
                         expect(
                             part.pitch.field.left.touch,
-                            setconst(effectunit, 'chain_selector', 1)
+                            setconst(effectunit, "chain_selector", 1)
                         );
                         expect(
                             part.pitch.field.right.touch,
-                            setconst(effectunit, 'chain_selector', -1)
+                            setconst(effectunit, "chain_selector", -1)
                         );
                     } else {
                         modeset(part.pitch.mode.absolute);
                         expect(part.pitch.slide, eqsideheld.choose(
-                            set(effectunit, 'mix'),
-                            reset(effectunit, 'mix')
+                            set(effectunit, "mix"),
+                            reset(effectunit, "mix")
                         ));
-                        watch(effectunit, 'mix', patch(part.pitch.meter.bar));
+                        watch(effectunit, "mix", patch(part.pitch.meter.bar));
                     }
 
                     expect(part.eq.high.slide, fxHeldSide.choose(
-                        set(effectunit_effect, 'parameter3'),
-                        reset(effectunit_effect, 'parameter3')
+                        set(effectunit_effect, "parameter3"),
+                        reset(effectunit_effect, "parameter3")
                     ));
                     expect(part.eq.mid.slide, fxHeldSide.choose(
-                        set(effectunit_effect, 'parameter2'),
-                        reset(effectunit_effect, 'parameter2')
+                        set(effectunit_effect, "parameter2"),
+                        reset(effectunit_effect, "parameter2")
                     ));
                     expect(part.eq.low.slide, fxHeldSide.choose(
-                        set(effectunit_effect, 'parameter1'),
-                        reset(effectunit_effect, 'parameter1')
+                        set(effectunit_effect, "parameter1"),
+                        reset(effectunit_effect, "parameter1")
                     ));
-                    watch(effectunit_effect, 'parameter3', patch(part.eq.high.meter.needle));
-                    watch(effectunit_effect, 'parameter2', patch(part.eq.mid.meter.needle));
-                    watch(effectunit_effect, 'parameter1', patch(part.eq.low.meter.needle));
+                    watch(effectunit_effect, "parameter3", patch(part.eq.high.meter.needle));
+                    watch(effectunit_effect, "parameter2", patch(part.eq.mid.meter.needle));
+                    watch(effectunit_effect, "parameter1", patch(part.eq.low.meter.needle));
                 }
             };
 
-            for (var tnr = 0; tnr < 4; tnr++) {
+            for (let tnr = 0; tnr < 4; tnr++) {
                 fxMap(tnr);
             }
 
@@ -835,8 +996,8 @@ SCS3M.Agent = function(device) {
                 repatch(fxHeldSide.releaseTrigger(sideoverlay.engageSub))
             );
             tell(part.modes.fx.light[fxHeldSide.choose(
-                sideoverlay.choose('eq', 'red', 'blue'),
-                'purple'
+                sideoverlay.choose("eq", "red", "blue"),
+                "purple"
             )]);
 
 
@@ -844,19 +1005,19 @@ SCS3M.Agent = function(device) {
                 if (deckside.held()) {
                     modeset(part.gain.mode.relative);
                     expect(part.gain.slide, eqsideheld.choose(
-                        budge(channel, 'pregain'),
-                        reset(channel, 'pregain')
+                        budge(channel, "pregain"),
+                        reset(channel, "pregain")
                     ));
-                    watch(channel, 'pregain', patch(offcenter(part.gain.meter.needle)));
+                    watch(channel, "pregain", patch(offcenter(part.gain.meter.needle)));
                 } else {
                     modeset(part.gain.mode.absolute);
-                    expect(part.gain.slide, set(channel, 'volume'));
-                    watch(channel, 'volume', patch(part.gain.meter.bar));
+                    expect(part.gain.slide, set(channel, "volume"));
+                    watch(channel, "volume", patch(part.gain.meter.bar));
                 }
             }
 
-            watch(channel, 'pfl', binarylight(part.phones.light.blue, part.phones.light.red));
-            expect(part.phones.touch, toggle(channel, 'pfl'));
+            watch(channel, "pfl", binarylight(part.phones.light.blue, part.phones.light.red));
+            expect(part.phones.touch, toggle(channel, "pfl"));
 
             if (deckside.held()) {
                 expect(device.crossfader.slide, set(channel, "playposition"));
@@ -864,42 +1025,42 @@ SCS3M.Agent = function(device) {
             }
 
             if (!master.engaged()) {
-                watch(channel, 'VuMeter', vupatch(part.meter.bar));
+                watch(channel, "VuMeter", vupatch(part.meter.bar));
             }
         }
 
         // Light the logo and let it go out to signal an overload
-        watch("[Master]", 'audio_latency_overload', binarylight(
+        watch("[Master]", "audio_latency_overload", binarylight(
             device.logo.on,
             device.logo.off
         ));
 
-        Side('left');
-        Side('right');
+        Side("left");
+        Side("right");
 
-        tell(device.master.light[master.choose('blue', 'purple')]);
+        tell(device.master.light[master.choose("blue", "purple")]);
         expect(device.master.touch, repatch(master.engage));
         expect(device.master.release, repatch(master.cancel));
         if (master.engaged()) {
             modeset(device.left.pitch.mode.absolute);
             watch("[Master]", "headMix", patch(device.left.pitch.meter.centerbar));
             expect(device.left.pitch.slide,
-                eqheld.left.engaged() ? reset('[Master]', 'headMix') : set('[Master]', 'headMix')
+                eqheld.left.engaged() ? reset("[Master]", "headMix") : set("[Master]", "headMix")
             );
 
             modeset(device.right.pitch.mode.absolute);
             watch("[Master]", "balance", patch(device.right.pitch.meter.centerbar));
             expect(device.right.pitch.slide,
-                eqheld.right.engaged() ? reset('[Master]', 'balance') : set('[Master]', 'balance')
+                eqheld.right.engaged() ? reset("[Master]", "balance") : set("[Master]", "balance")
             );
 
             modeset(device.left.gain.mode.relative);
             watch("[Master]", "headVolume", patch(device.left.gain.meter.centerbar));
-            expect(device.left.gain.slide, budge('[Master]', 'headVolume'));
+            expect(device.left.gain.slide, budge("[Master]", "headVolume"));
 
             modeset(device.right.gain.mode.relative);
             watch("[Master]", "volume", patch(device.right.gain.meter.centerbar));
-            expect(device.right.gain.slide, budge('[Master]', 'volume'));
+            expect(device.right.gain.slide, budge("[Master]", "volume"));
 
             watch("[Master]", "VuMeterL", vupatch(device.left.meter.bar));
             watch("[Master]", "VuMeterR", vupatch(device.right.meter.bar));
@@ -914,14 +1075,14 @@ SCS3M.Agent = function(device) {
 
         // Communicate currently selected channel of each deck so SCS3d can read it
         // THIS USES A CONTROL FOR ULTERIOR PURPOSES AND IS VERY NAUGHTY INDEED
-        engine.setValue('[PreviewDeck1]', 'quantize',
+        engine.setValue("[PreviewDeck1]", "quantize",
             0x4 // Setting bit three communicates that we're sending deck state
             | deck.left.engaged() // left side is in bit one
             | deck.right.engaged() << 1 // right side bit two
         );
-        watch('[PreviewDeck1]', 'quantize', function(deckState) {
-            var changed = deck.left.change(deckState & 1) || deck.right.change(deckState & 2);
-            if (changed) repatch(function() {})();
+        watch("[PreviewDeck1]", "quantize", function(deckState) {
+            const changed = deck.left.change(deckState & 1) || deck.right.change(deckState & 2);
+            if (changed) { repatch(function() {})(); }
         });
     }
 

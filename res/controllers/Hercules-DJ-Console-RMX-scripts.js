@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- **/
+ */
 
 //TODO: Cleanup, create objects from init.
 //Remove led timers when alsa midi is working properly.
@@ -34,57 +34,57 @@ HerculesRMX.firstGenerationFirmware = false;
 HerculesRMX.Button = Button;
 
 HerculesRMX.Button.prototype.setLed = function(ledState, blink) {
-    if(ledState == LedState.on) {
-        midi.sendShortMsg(0xB0,this.controlId,LedState.on);
+    if (ledState == LedState.on) {
+        midi.sendShortMsg(0xB0, this.controlId, LedState.on);
     } else {
-        midi.sendShortMsg(0xB0,this.controlId,LedState.off);
+        midi.sendShortMsg(0xB0, this.controlId, LedState.off);
     }
-    if(blink) {
-       engine.beginTimer(20, "midi.sendShortMsg(0xB0," + (this.controlId + 0x30) + ", " + LedState.on + ")", true);
+    if (blink) {
+        engine.beginTimer(20, "midi.sendShortMsg(0xB0," + (this.controlId + 0x30) + ", " + LedState.on + ")", true);
     } else {
-       engine.beginTimer(20, "midi.sendShortMsg(0xB0," + (this.controlId + 0x30) + ", " + LedState.off + ")", true);
+        engine.beginTimer(20, "midi.sendShortMsg(0xB0," + (this.controlId + 0x30) + ", " + LedState.off + ")", true);
     }
 };
 
 HerculesRMX.shiftHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      this.shiftMode = true;
-      if(HerculesRMX.scratchMode) {
-         HerculesRMX.scratchMode = false;
-         HerculesRMX.Buttons.Scratch.setLed(LedState.off);
-      } else {
-         HerculesRMX.scratchMode = true;
-         HerculesRMX.Buttons.Scratch.setLed(LedState.on);
-      }
-   } else {
-      this.shiftMode = false;
-   }
+    if (value == ButtonState.pressed) {
+        this.shiftMode = true;
+        if (HerculesRMX.scratchMode) {
+            HerculesRMX.scratchMode = false;
+            HerculesRMX.Buttons.Scratch.setLed(LedState.off);
+        } else {
+            HerculesRMX.scratchMode = true;
+            HerculesRMX.Buttons.Scratch.setLed(LedState.on);
+        }
+    } else {
+        this.shiftMode = false;
+    }
 };
 
 HerculesRMX.upHandler = function(value) {
-   this.jogPlaylistScrollMode = this.Buttons.Up.state + this.Buttons.Down.state > 0;
-   if(value == ButtonState.pressed) {
-      engine.setValue("[Playlist]", "SelectPrevTrack", 1);
-   }
+    this.jogPlaylistScrollMode = this.Buttons.Up.state + this.Buttons.Down.state > 0;
+    if (value == ButtonState.pressed) {
+        engine.setValue("[Playlist]", "SelectPrevTrack", 1);
+    }
 };
 
 HerculesRMX.downHandler = function(value) {
-   this.jogPlaylistScrollMode = this.Buttons.Up.state + this.Buttons.Down.state > 0;
-   if(value == ButtonState.pressed) {
-      engine.setValue("[Playlist]", "SelectNextTrack", 1);
-   }
+    this.jogPlaylistScrollMode = this.Buttons.Up.state + this.Buttons.Down.state > 0;
+    if (value == ButtonState.pressed) {
+        engine.setValue("[Playlist]", "SelectNextTrack", 1);
+    }
 };
 
 HerculesRMX.leftHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      engine.setValue("[Playlist]", "SelectPrevPlaylist", 1);
-   }
+    if (value == ButtonState.pressed) {
+        engine.setValue("[Playlist]", "SelectPrevPlaylist", 1);
+    }
 };
 
 HerculesRMX.rightHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      engine.setValue("[Playlist]", "SelectNextPlaylist", 1);
-   }
+    if (value == ButtonState.pressed) {
+        engine.setValue("[Playlist]", "SelectNextPlaylist", 1);
+    }
 };
 
 HerculesRMX.addButton("Scratch", new HerculesRMX.Button(0x29), "shiftHandler");
@@ -94,13 +94,13 @@ HerculesRMX.addButton("Left", new HerculesRMX.Button(0x2C), "leftHandler");
 HerculesRMX.addButton("Right", new HerculesRMX.Button(0x2D), "rightHandler");
 
 HerculesRMX.Controls = {
-      "Balance" : new Control("balance", false),
-      "Volume" : new Control("volume", false),
-      "CrossFader" : new Control("crossfader", false),
-      "HeadPhoneMix" : new Control("headMix", false),
-      "FlangerDepth" : new Control("lfoDepth", false),
-      "FlangerDelay" : new Control("lfoDelay", false),
-      "FlangerPeriod" : new Control("lfoPeriod", false)
+    "Balance": new Control("balance", false),
+    "Volume": new Control("volume", false),
+    "CrossFader": new Control("crossfader", false),
+    "HeadPhoneMix": new Control("headMix", false),
+    "FlangerDepth": new Control("lfoDepth", false),
+    "FlangerDelay": new Control("lfoDelay", false),
+    "FlangerPeriod": new Control("lfoPeriod", false)
 };
 HerculesRMX.Controls.Volume.minOutput = 0.0;
 HerculesRMX.Controls.Volume.midOutput = 1.0;
@@ -116,23 +116,24 @@ HerculesRMX.Controls.FlangerPeriod.midOutput = 1000000;
 HerculesRMX.Controls.FlangerPeriod.maxOutput = 2000000;
 
 HerculesRMX.balanceHandler = function(value) {
-   this.Controls.Balance.setValue(this.group, value);
+    this.Controls.Balance.setValue(this.group, value);
 };
 
 HerculesRMX.volumeHandler = function(value) {
-   this.Controls.Volume.setValue(this.group, value);
+    this.Controls.Volume.setValue(this.group, value);
 };
 
 HerculesRMX.crossFaderHandler = function(value) {
-   this.Controls.CrossFader.setValue(this.group, value);
+    this.Controls.CrossFader.setValue(this.group, value);
 };
 
 HerculesRMX.headPhoneMixHandler = function(value) {
-   this.Controls.HeadPhoneMix.setValue(this.group, value);
+    this.Controls.HeadPhoneMix.setValue(this.group, value);
 };
 
 /**
  * Deck
+ *
  * @param deckNumber
  * @param group
  */
@@ -144,14 +145,14 @@ HerculesRMX.cuePlaying = false;
 HerculesRMX.playing = false;
 
 HerculesRMX.Deck.prototype.jogMove = function(jogValue) {
-   if(HerculesRMX.jogPlaylistScrollMode) {
-      if (jogValue > 0) {
-         engine.setValue("[Playlist]","SelectNextTrack", 1);
-      } else if (jogValue < 0) {
-         engine.setValue("[Playlist]","SelectPrevTrack", 1);
-      }
-   } else if(HerculesRMX.scratchMode) {
-        if(!this.scratching) {
+    if (HerculesRMX.jogPlaylistScrollMode) {
+        if (jogValue > 0) {
+            engine.setValue("[Playlist]", "SelectNextTrack", 1);
+        } else if (jogValue < 0) {
+            engine.setValue("[Playlist]", "SelectPrevTrack", 1);
+        }
+    } else if (HerculesRMX.scratchMode) {
+        if (!this.scratching) {
             this.scratching = true;
             engine.scratchEnable(this.deckNumber, 128, 45, 1.0/8, (1.0/8)/32);
         } else {
@@ -160,7 +161,7 @@ HerculesRMX.Deck.prototype.jogMove = function(jogValue) {
         engine.scratchTick(this.deckNumber, jogValue);
         this.scratchTimer = engine.beginTimer(20, "HerculesRMX.GetDeck('" + this.group + "').stopScratching()", true);
     } else {
-        engine.setValue(this.group,"jog", jogValue);
+        engine.setValue(this.group, "jog", jogValue);
     }
 };
 
@@ -171,207 +172,203 @@ HerculesRMX.Deck.prototype.stopScratching = function() {
 };
 
 HerculesRMX.Deck.prototype.pitchResetHandler = function(value) {
-    if(value == ButtonState.pressed) {
-        engine.setValue(this.group,"rate",0);
+    if (value == ButtonState.pressed) {
+        engine.setValue(this.group, "rate", 0);
         this.Buttons.PitchReset.setLed(LedState.on);
     }
 };
 
 HerculesRMX.Deck.prototype.syncHandler = function(value) {
-    if(value == ButtonState.pressed) {
-       if(this.shiftMode) {
-          engine.setValue(this.group,"bpm_tap",1);
-       } else {
-          engine.setValue(this.group,"beatsync",1);
-         this.Buttons.Sync.setLed(LedState.on);
-       }
-    } else if(value == ButtonState.released) {
-      if(!this.shiftMode) {
-         engine.setValue(this.group,"beatsync",0);
-      }
-   }
+    if (value == ButtonState.pressed) {
+        if (this.shiftMode) {
+            engine.setValue(this.group, "bpm_tap", 1);
+        } else {
+            engine.setValue(this.group, "beatsync", 1);
+            this.Buttons.Sync.setLed(LedState.on);
+        }
+    } else if (value == ButtonState.released) {
+        if (!this.shiftMode) {
+            engine.setValue(this.group, "beatsync", 0);
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.keypad1Handler = function(value) {
-   if(value == ButtonState.pressed) {
-      if(HerculesRMX.shiftMode) {
-         if(engine.getValue(this.group,"flanger") == 0) {
-            engine.setValue(this.group,"flanger",1);
-         } else {
-            engine.setValue(this.group,"flanger",0);
-         }
-      } else if(this.shiftMode) {
-         engine.setValue(this.group,"hotcue_1_clear", 1);
-      } else {
-         engine.setValue(this.group, "hotcue_1_activate", 1);
-      }
-   }
-   else { // On button release
-    if(!HerculesRMX.shiftMode) {
-      if(this.shiftMode) {
-         engine.setValue(this.group,"hotcue_1_clear", 0);
-      } else {
-         engine.setValue(this.group,"hotcue_1_activate", 0);
-      }
-  }
-}
+    if (value == ButtonState.pressed) {
+        if (HerculesRMX.shiftMode) {
+            if (engine.getValue(this.group, "flanger") == 0) {
+                engine.setValue(this.group, "flanger", 1);
+            } else {
+                engine.setValue(this.group, "flanger", 0);
+            }
+        } else if (this.shiftMode) {
+            engine.setValue(this.group, "hotcue_1_clear", 1);
+        } else {
+            engine.setValue(this.group, "hotcue_1_activate", 1);
+        }
+    } else { // On button release
+        if (!HerculesRMX.shiftMode) {
+            if (this.shiftMode) {
+                engine.setValue(this.group, "hotcue_1_clear", 0);
+            } else {
+                engine.setValue(this.group, "hotcue_1_activate", 0);
+            }
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.keypad2Handler = function(value) {
-   if(value == ButtonState.pressed) {
-      if(this.shiftMode) {
-         engine.setValue(this.group,"hotcue_2_clear", 1);
-      } else {
-         engine.setValue(this.group,"hotcue_2_activate", 1);
-      }
-   }
-
-   else { // On button release
-    if(!HerculesRMX.shiftMode) {
-      if(this.shiftMode) {
-         engine.setValue(this.group,"hotcue_2_clear", 0);
-      } else {
-         engine.setValue(this.group,"hotcue_2_activate", 0);
-      }
-  }
-}
+    if (value == ButtonState.pressed) {
+        if (this.shiftMode) {
+            engine.setValue(this.group, "hotcue_2_clear", 1);
+        } else {
+            engine.setValue(this.group, "hotcue_2_activate", 1);
+        }
+    } else { // On button release
+        if (!HerculesRMX.shiftMode) {
+            if (this.shiftMode) {
+                engine.setValue(this.group, "hotcue_2_clear", 0);
+            } else {
+                engine.setValue(this.group, "hotcue_2_activate", 0);
+            }
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.keypad3Handler = function(value) {
-   if(value == ButtonState.pressed) {
-      if(this.shiftMode) {
-         engine.setValue(this.group,"hotcue_3_clear", 1);
-      } else {
-         engine.setValue(this.group,"hotcue_3_activate", 1);
-      }
-   }
-   else { // On button release
-    if(!HerculesRMX.shiftMode) {
-      if(this.shiftMode) {
-         engine.setValue(this.group,"hotcue_3_clear", 0);
-      } else {
-         engine.setValue(this.group,"hotcue_3_activate", 0);
-      }
-  }
-}
+    if (value == ButtonState.pressed) {
+        if (this.shiftMode) {
+            engine.setValue(this.group, "hotcue_3_clear", 1);
+        } else {
+            engine.setValue(this.group, "hotcue_3_activate", 1);
+        }
+    } else { // On button release
+        if (!HerculesRMX.shiftMode) {
+            if (this.shiftMode) {
+                engine.setValue(this.group, "hotcue_3_clear", 0);
+            } else {
+                engine.setValue(this.group, "hotcue_3_activate", 0);
+            }
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.keypad4Handler = function(value) {
-   if(value == ButtonState.pressed) {
-      if(HerculesRMX.shiftMode) {
-         engine.setValue(this.group,"reverse",1);
-      } else if(this.shiftMode) {
-         engine.setValue(this.group,"loop_in",1);
-      }
-   } else {
-      engine.setValue(this.group,"reverse",0);
-   }
+    if (value == ButtonState.pressed) {
+        if (HerculesRMX.shiftMode) {
+            engine.setValue(this.group, "reverse", 1);
+        } else if (this.shiftMode) {
+            engine.setValue(this.group, "loop_in", 1);
+        }
+    } else {
+        engine.setValue(this.group, "reverse", 0);
+    }
 };
 
 HerculesRMX.Deck.prototype.keypad5Handler = function(value) {
-   if(this.shiftMode) {
-      if(value == ButtonState.pressed) {
-         engine.setValue(this.group,"loop_out",1);
-      }
-   }
+    if (this.shiftMode) {
+        if (value == ButtonState.pressed) {
+            engine.setValue(this.group, "loop_out", 1);
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.keypad6Handler = function(value) {
-   if(value == ButtonState.pressed) {
-      if(this.shiftMode) {
-         var loopIn = engine.getValue(this.group, "loop_start_position");
-         var loopOut = engine.getValue(this.group, "loop_end_position");
-         var loopLength = loopOut - loopIn;
-         if (loopIn != -1 && loopOut != -1 && loopLength >= 2) {
-            engine.setValue(this.group,"loop_end_position",loopIn + loopLength / 2);
-         }
-      } else {
-         engine.setValue(this.group,"reloop_exit",1);
-      }
-   }
+    if (value == ButtonState.pressed) {
+        if (this.shiftMode) {
+            const loopIn = engine.getValue(this.group, "loop_start_position");
+            const loopOut = engine.getValue(this.group, "loop_end_position");
+            const loopLength = loopOut - loopIn;
+            if (loopIn != -1 && loopOut != -1 && loopLength >= 2) {
+                engine.setValue(this.group, "loop_end_position", loopIn + loopLength / 2);
+            }
+        } else {
+            engine.setValue(this.group, "reloop_exit", 1);
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.previousHandler = function(value) {
-   if(this.Buttons.Keypad1.state == ButtonState.pressed) {
+    if (this.Buttons.Keypad1.state == ButtonState.pressed) {
     //Move hotcue 1 backwards
-      var hotcue = engine.getValue(this.group, "hotcue_1_position");
-      var newPosition = hotcue - 400;
-      if(newPosition > 0) {
-         engine.setValue(this.group, "hotcue_1_position", newPosition);
-      }
-   } else if(this.Buttons.Keypad2.state == ButtonState.pressed) {
+        var hotcue = engine.getValue(this.group, "hotcue_1_position");
+        var newPosition = hotcue - 400;
+        if (newPosition > 0) {
+            engine.setValue(this.group, "hotcue_1_position", newPosition);
+        }
+    } else if (this.Buttons.Keypad2.state == ButtonState.pressed) {
     //Move hotcue 2 backwards
-      var hotcue = engine.getValue(this.group, "hotcue_2_position");
-      var newPosition = hotcue - 400;
-      if(newPosition > 0) {
-         engine.setValue(this.group, "hotcue_2_position", newPosition);
-      }
-   } else if(this.Buttons.Keypad3.state == ButtonState.pressed) {
-      //Move hotcue 3 backwards
-      var hotcue = engine.getValue(this.group, "hotcue_3_position");
-      var newPosition = hotcue - 400;
-      if(newPosition > 0) {
-         engine.setValue(this.group, "hotcue_3_position", newPosition);
-      }
-   } else if(this.Buttons.Keypad4.state == ButtonState.pressed) {
-      //Move loop-in backwards
-      var loopIn = engine.getValue(this.group, "loop_start_position");
-      var newPosition = loopIn - 400;
-      if(newPosition > 0) {
-         engine.setValue(this.group, "loop_start_position", newPosition);
-      }
-   } else if(this.Buttons.Keypad5.state == ButtonState.pressed) {
-      //Move loop-out backwards
-      var loopIn = engine.getValue(this.group, "loop_start_position");
-      var loopOut = engine.getValue(this.group, "loop_end_position");
-      var newPosition = loopOut - 400;
-      if(newPosition > loopIn) {
-         engine.setValue(this.group, "loop_end_position", newPosition);
-      }
-   } else {
-      engine.setValue(this.group,"back",value);
-   }
+        var hotcue = engine.getValue(this.group, "hotcue_2_position");
+        var newPosition = hotcue - 400;
+        if (newPosition > 0) {
+            engine.setValue(this.group, "hotcue_2_position", newPosition);
+        }
+    } else if (this.Buttons.Keypad3.state == ButtonState.pressed) {
+        //Move hotcue 3 backwards
+        var hotcue = engine.getValue(this.group, "hotcue_3_position");
+        var newPosition = hotcue - 400;
+        if (newPosition > 0) {
+            engine.setValue(this.group, "hotcue_3_position", newPosition);
+        }
+    } else if (this.Buttons.Keypad4.state == ButtonState.pressed) {
+        //Move loop-in backwards
+        var loopIn = engine.getValue(this.group, "loop_start_position");
+        var newPosition = loopIn - 400;
+        if (newPosition > 0) {
+            engine.setValue(this.group, "loop_start_position", newPosition);
+        }
+    } else if (this.Buttons.Keypad5.state == ButtonState.pressed) {
+        //Move loop-out backwards
+        var loopIn = engine.getValue(this.group, "loop_start_position");
+        const loopOut = engine.getValue(this.group, "loop_end_position");
+        var newPosition = loopOut - 400;
+        if (newPosition > loopIn) {
+            engine.setValue(this.group, "loop_end_position", newPosition);
+        }
+    } else {
+        engine.setValue(this.group, "back", value);
+    }
 };
 
 HerculesRMX.Deck.prototype.nextHandler = function(value) {
-   //TODO: Fix movement of hotcues & loops out of track bounds
-   if(this.Buttons.Keypad1.state == ButtonState.pressed) {
-      //Move hotcue 1 forwards
+    //TODO: Fix movement of hotcues & loops out of track bounds
+    if (this.Buttons.Keypad1.state == ButtonState.pressed) {
+        //Move hotcue 1 forwards
         var hotcue = engine.getValue(this.group, "hotcue_1_position");
         var newPosition = hotcue + 400;
-        if(hotcue != -1) {
-           engine.setValue(this.group, "hotcue_1_position", newPosition);
+        if (hotcue != -1) {
+            engine.setValue(this.group, "hotcue_1_position", newPosition);
         }
-     } else if(this.Buttons.Keypad2.state == ButtonState.pressed) {
-      //Move hotcue 2 forwards
+    } else if (this.Buttons.Keypad2.state == ButtonState.pressed) {
+        //Move hotcue 2 forwards
         var hotcue = engine.getValue(this.group, "hotcue_2_position");
         var newPosition = hotcue + 400;
-        if(hotcue != -1) {
-           engine.setValue(this.group, "hotcue_2_position", newPosition);
+        if (hotcue != -1) {
+            engine.setValue(this.group, "hotcue_2_position", newPosition);
         }
-     } else if(this.Buttons.Keypad3.state == ButtonState.pressed) {
+    } else if (this.Buttons.Keypad3.state == ButtonState.pressed) {
         //Move hotcue 3 forwards
         var hotcue = engine.getValue(this.group, "hotcue_3_position");
         var newPosition = hotcue + 400;
-        if(hotcue != -1 > 0) {
-           engine.setValue(this.group, "hotcue_3_position", newPosition);
+        if (hotcue != -1 > 0) {
+            engine.setValue(this.group, "hotcue_3_position", newPosition);
         }
-     } else if(this.Buttons.Keypad4.state == ButtonState.pressed) {
-      //Move loop-in forwards
-      var loopIn = engine.getValue(this.group, "loop_start_position");
-      var loopOut = engine.getValue(this.group, "loop_end_position");
-      var newPosition = loopIn + 400;
-      if(newPosition < loopOut) {
-         engine.setValue(this.group, "loop_start_position", newPosition);
-      }
-   } else if(this.Buttons.Keypad5.state == ButtonState.pressed) {
-      //Move loop-out forwards
-      var loopOut = engine.getValue(this.group, "loop_end_position");
-      var newPosition = loopOut + 400;
-      engine.setValue(this.group, "loop_end_position", newPosition);
-   } else {
-      engine.setValue(this.group,"fwd",value);
-   }
+    } else if (this.Buttons.Keypad4.state == ButtonState.pressed) {
+        //Move loop-in forwards
+        const loopIn = engine.getValue(this.group, "loop_start_position");
+        var loopOut = engine.getValue(this.group, "loop_end_position");
+        var newPosition = loopIn + 400;
+        if (newPosition < loopOut) {
+            engine.setValue(this.group, "loop_start_position", newPosition);
+        }
+    } else if (this.Buttons.Keypad5.state == ButtonState.pressed) {
+        //Move loop-out forwards
+        var loopOut = engine.getValue(this.group, "loop_end_position");
+        var newPosition = loopOut + 400;
+        engine.setValue(this.group, "loop_end_position", newPosition);
+    } else {
+        engine.setValue(this.group, "fwd", value);
+    }
 };
 
 /*HerculesRMX.Deck.prototype.playPauseHandler = function(value) {
@@ -399,149 +396,149 @@ HerculesRMX.Deck.prototype.cueHandler = function(value) {
 };*/
 
 HerculesRMX.Deck.prototype.killHighHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      var filterStatus = engine.getValue(this.group, "filterHighKill");
-      if(filterStatus) {
-         engine.setValue(this.group, "filterHighKill", 0);
-      } else {
-         engine.setValue(this.group, "filterHighKill", 1);
-      }
-   }
+    if (value == ButtonState.pressed) {
+        const filterStatus = engine.getValue(this.group, "filterHighKill");
+        if (filterStatus) {
+            engine.setValue(this.group, "filterHighKill", 0);
+        } else {
+            engine.setValue(this.group, "filterHighKill", 1);
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.killMidHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      var filterStatus = engine.getValue(this.group, "filterMidKill");
-      if(filterStatus) {
-         engine.setValue(this.group, "filterMidKill", 0);
-      } else {
-         engine.setValue(this.group, "filterMidKill", 1);
-      }
-   }
+    if (value == ButtonState.pressed) {
+        const filterStatus = engine.getValue(this.group, "filterMidKill");
+        if (filterStatus) {
+            engine.setValue(this.group, "filterMidKill", 0);
+        } else {
+            engine.setValue(this.group, "filterMidKill", 1);
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.killLowHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      var filterStatus = engine.getValue(this.group, "filterLowKill");
-      if(filterStatus) {
-         engine.setValue(this.group, "filterLowKill", 0);
-      } else {
-         engine.setValue(this.group, "filterLowKill", 1);
-      }
-   }
+    if (value == ButtonState.pressed) {
+        const filterStatus = engine.getValue(this.group, "filterLowKill");
+        if (filterStatus) {
+            engine.setValue(this.group, "filterLowKill", 0);
+        } else {
+            engine.setValue(this.group, "filterLowKill", 1);
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.loadHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      engine.setValue(this.group, "LoadSelectedTrack", 1);
-   }
+    if (value == ButtonState.pressed) {
+        engine.setValue(this.group, "LoadSelectedTrack", 1);
+    }
 };
 
 HerculesRMX.Deck.prototype.cueSelectHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      var filterStatus = engine.getValue(this.group, "pfl");
-      if(filterStatus) {
-         engine.setValue(this.group, "pfl", 0);
-         this.Buttons.CueSelect.setLed(LedState.off);
-      } else {
-         engine.setValue(this.group, "pfl", 1);
-         this.Buttons.CueSelect.setLed(LedState.on);
-      }
-   }
+    if (value == ButtonState.pressed) {
+        const filterStatus = engine.getValue(this.group, "pfl");
+        if (filterStatus) {
+            engine.setValue(this.group, "pfl", 0);
+            this.Buttons.CueSelect.setLed(LedState.off);
+        } else {
+            engine.setValue(this.group, "pfl", 1);
+            this.Buttons.CueSelect.setLed(LedState.on);
+        }
+    }
 };
 
 HerculesRMX.Deck.prototype.sourceSelectHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      var passthroughStatus = engine.getValue(this.group, "passthrough");
-      if(passthroughStatus) {
-         engine.setValue(this.group, "passthrough", 0);
-         this.Buttons.SourceSelect.setLed(LedState.off);
-      } else {
-         engine.setValue(this.group, "passthrough", 1);
-         this.Buttons.SourceSelect.setLed(LedState.on);
-      }
+    if (value == ButtonState.pressed) {
+        const passthroughStatus = engine.getValue(this.group, "passthrough");
+        if (passthroughStatus) {
+            engine.setValue(this.group, "passthrough", 0);
+            this.Buttons.SourceSelect.setLed(LedState.off);
+        } else {
+            engine.setValue(this.group, "passthrough", 1);
+            this.Buttons.SourceSelect.setLed(LedState.on);
+        }
     }
 };
 
 HerculesRMX.Deck.prototype.gainHandler = function(value) {
-   this.Controls.Gain.setValue(this.group, value);
+    this.Controls.Gain.setValue(this.group, value);
 };
 
 HerculesRMX.Deck.prototype.trebleHandler = function(value) {
-   if(HerculesRMX.shiftMode) {
-      //Flanger
-      HerculesRMX.Controls.FlangerDepth.setValue("[Flanger]", value);
-   } else if(this.shiftMode) {
-      //Soft set
-      this.Controls.Treble.softMode = true;
-      this.Controls.Treble.setValue(this.group, value);
-      this.Controls.Treble.softMode = false;
-   } else {
-      this.Controls.Treble.setValue(this.group, value);
-   }
+    if (HerculesRMX.shiftMode) {
+        //Flanger
+        HerculesRMX.Controls.FlangerDepth.setValue("[Flanger]", value);
+    } else if (this.shiftMode) {
+        //Soft set
+        this.Controls.Treble.softMode = true;
+        this.Controls.Treble.setValue(this.group, value);
+        this.Controls.Treble.softMode = false;
+    } else {
+        this.Controls.Treble.setValue(this.group, value);
+    }
 };
 
 HerculesRMX.Deck.prototype.mediumHandler = function(value) {
-   if(HerculesRMX.shiftMode) {
-      //Flanger
-      HerculesRMX.Controls.FlangerDelay.setValue("[Flanger]", value);
-   } else if(this.shiftMode) {
-      //Soft set
-      this.Controls.Medium.softMode = true;
-      this.Controls.Medium.setValue(this.group, value);
-      this.Controls.Medium.softMode = false;
-   } else {
-      this.Controls.Medium.setValue(this.group, value);
-   }
+    if (HerculesRMX.shiftMode) {
+        //Flanger
+        HerculesRMX.Controls.FlangerDelay.setValue("[Flanger]", value);
+    } else if (this.shiftMode) {
+        //Soft set
+        this.Controls.Medium.softMode = true;
+        this.Controls.Medium.setValue(this.group, value);
+        this.Controls.Medium.softMode = false;
+    } else {
+        this.Controls.Medium.setValue(this.group, value);
+    }
 };
 
 HerculesRMX.Deck.prototype.bassHandler = function(value) {
-   if(HerculesRMX.shiftMode) {
-      //Flanger
-      HerculesRMX.Controls.FlangerPeriod.setValue("[Flanger]", value);
-   } else if(this.shiftMode) {
-      //Soft set
-      this.Controls.Bass.softMode = true;
-      this.Controls.Bass.setValue(this.group, value);
-      this.Controls.Bass.softMode = false;
-   } else {
-      this.Controls.Bass.setValue(this.group, value);
-   }
+    if (HerculesRMX.shiftMode) {
+        //Flanger
+        HerculesRMX.Controls.FlangerPeriod.setValue("[Flanger]", value);
+    } else if (this.shiftMode) {
+        //Soft set
+        this.Controls.Bass.softMode = true;
+        this.Controls.Bass.setValue(this.group, value);
+        this.Controls.Bass.softMode = false;
+    } else {
+        this.Controls.Bass.setValue(this.group, value);
+    }
 };
 
 HerculesRMX.Deck.prototype.volHandler = function(value) {
-   this.Controls.Vol.setValue(this.group, value);
+    this.Controls.Vol.setValue(this.group, value);
 };
 
 HerculesRMX.Deck.prototype.pitchHandler = function(value) {
-   this.Controls.Pitch.setValue(this.group, value);
+    this.Controls.Pitch.setValue(this.group, value);
 };
 
 HerculesRMX.Deck.prototype.shiftHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      this.shiftMode = true;
-   } else {
-      this.shiftMode = false;
-   }
+    if (value == ButtonState.pressed) {
+        this.shiftMode = true;
+    } else {
+        this.shiftMode = false;
+    }
 };
 
 HerculesRMX.Deck.prototype.stopHandler = function(value) {
-   if(value == ButtonState.pressed) {
-      engine.setValue(this.group, "cue_default", 0);
-      engine.setValue(this.group, "play", 0);
-      engine.setValue(this.group, "start", 0);
-   }
+    if (value == ButtonState.pressed) {
+        engine.setValue(this.group, "cue_default", 0);
+        engine.setValue(this.group, "play", 0);
+        engine.setValue(this.group, "start", 0);
+    }
 };
 
-HerculesRMX.Decks = {"Left":new HerculesRMX.Deck(1,"[Channel1]"), "Right":new HerculesRMX.Deck(2,"[Channel2]")};
-HerculesRMX.GroupToDeck = {"[Channel1]":"Left", "[Channel2]":"Right"};
+HerculesRMX.Decks = {"Left": new HerculesRMX.Deck(1, "[Channel1]"), "Right": new HerculesRMX.Deck(2, "[Channel2]")};
+HerculesRMX.GroupToDeck = {"[Channel1]": "Left", "[Channel2]": "Right"};
 
 HerculesRMX.GetDeck = function(group) {
-   try {
-      return HerculesRMX.Decks[HerculesRMX.GroupToDeck[group]];
-   } catch(ex) {
-      return null;
-   }
+    try {
+        return HerculesRMX.Decks[HerculesRMX.GroupToDeck[group]];
+    } catch (ex) {
+        return null;
+    }
 };
 
 HerculesRMX.Decks.Left.addButton("Keypad1", new HerculesRMX.Button(0x01), "keypad1Handler");
@@ -567,12 +564,12 @@ HerculesRMX.Decks.Left.addButton("CueSelect", new HerculesRMX.Button(0x14, 0x44)
 HerculesRMX.Decks.Left.addButton("Stop",  new HerculesRMX.Button(0x0D), "stopHandler");
 
 HerculesRMX.Decks.Left.Controls = {
-      "Gain" : new Control("pregain", false),
-      "Treble" : new Control("filterHigh", false),
-      "Medium" : new Control("filterMid", false),
-      "Bass" : new Control("filterLow", false),
-      "Vol" : new Control("volume", false),
-      "Pitch" : new Control("rate", false)
+    "Gain": new Control("pregain", false),
+    "Treble": new Control("filterHigh", false),
+    "Medium": new Control("filterMid", false),
+    "Bass": new Control("filterLow", false),
+    "Vol": new Control("volume", false),
+    "Pitch": new Control("rate", false)
 };
 HerculesRMX.Decks.Left.Controls.Gain.minOutput = 0.0;
 HerculesRMX.Decks.Left.Controls.Gain.midOutput = 1.0;
@@ -614,12 +611,12 @@ HerculesRMX.Decks.Right.addButton("CueSelect", new HerculesRMX.Button(0x18, 0x58
 HerculesRMX.Decks.Right.addButton("Stop", new HerculesRMX.Button(0x25), "stopHandler");
 
 HerculesRMX.Decks.Right.Controls = {
-      "Gain" : new Control("pregain", false),
-      "Treble" : new Control("filterHigh", false),
-      "Medium" : new Control("filterMid", false),
-      "Bass" : new Control("filterLow", false),
-      "Vol" : new Control("volume", false),
-      "Pitch" : new Control("rate", false)
+    "Gain": new Control("pregain", false),
+    "Treble": new Control("filterHigh", false),
+    "Medium": new Control("filterMid", false),
+    "Bass": new Control("filterLow", false),
+    "Vol": new Control("volume", false),
+    "Pitch": new Control("rate", false)
 };
 HerculesRMX.Decks.Right.Controls.Gain.minOutput = 0.0;
 HerculesRMX.Decks.Right.Controls.Gain.midOutput = 1.0;
@@ -640,247 +637,247 @@ HerculesRMX.Decks.Right.Controls.Pitch.midInput = (HerculesRMX.firstGenerationFi
 
 //Mapping functions
 HerculesRMX.volume = function(channel, control, value, status, group) {
-   HerculesRMX.volumeHandler(value);
+    HerculesRMX.volumeHandler(value);
 };
 
 HerculesRMX.balance = function(channel, control, value, status, group) {
-   HerculesRMX.balanceHandler(value);
+    HerculesRMX.balanceHandler(value);
 };
 
 HerculesRMX.crossFader = function(channel, control, value, status, group) {
-   HerculesRMX.crossFaderHandler(value);
+    HerculesRMX.crossFaderHandler(value);
 };
 
 HerculesRMX.headPhoneMix = function(channel, control, value, status, group) {
-   HerculesRMX.headPhoneMixHandler(value);
+    HerculesRMX.headPhoneMixHandler(value);
 };
 
-HerculesRMX.up = function (channel, control, value, status, group) {
-   HerculesRMX.Buttons.Up.handleEvent(value);
+HerculesRMX.up = function(channel, control, value, status, group) {
+    HerculesRMX.Buttons.Up.handleEvent(value);
 };
 
-HerculesRMX.down = function (channel, control, value, status, group) {
-   HerculesRMX.Buttons.Down.handleEvent(value);
+HerculesRMX.down = function(channel, control, value, status, group) {
+    HerculesRMX.Buttons.Down.handleEvent(value);
 };
 
-HerculesRMX.left = function (channel, control, value, status, group) {
-   HerculesRMX.Buttons.Left.handleEvent(value);
+HerculesRMX.left = function(channel, control, value, status, group) {
+    HerculesRMX.Buttons.Left.handleEvent(value);
 };
 
-HerculesRMX.right = function (channel, control, value, status, group) {
-   HerculesRMX.Buttons.Right.handleEvent(value);
+HerculesRMX.right = function(channel, control, value, status, group) {
+    HerculesRMX.Buttons.Right.handleEvent(value);
 };
 
-HerculesRMX.scratch = function (channel, control, value, status, group) {
-   HerculesRMX.Buttons.Scratch.handleEvent(value);
+HerculesRMX.scratch = function(channel, control, value, status, group) {
+    HerculesRMX.Buttons.Scratch.handleEvent(value);
 };
 
 HerculesRMX.gain = function(channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.gainHandler(value);
+    const deck = HerculesRMX.GetDeck(group);
+    deck.gainHandler(value);
 };
 
 HerculesRMX.rate = function(channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.pitchHandler(value);
+    const deck = HerculesRMX.GetDeck(group);
+    deck.pitchHandler(value);
 };
 
 HerculesRMX.treble = function(channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.trebleHandler(value);
+    const deck = HerculesRMX.GetDeck(group);
+    deck.trebleHandler(value);
 };
 
 HerculesRMX.medium = function(channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.mediumHandler(value);
+    const deck = HerculesRMX.GetDeck(group);
+    deck.mediumHandler(value);
 };
 
 HerculesRMX.bass = function(channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.bassHandler(value);
+    const deck = HerculesRMX.GetDeck(group);
+    deck.bassHandler(value);
 };
 
 HerculesRMX.deckVolume = function(channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.volHandler(value);
+    const deck = HerculesRMX.GetDeck(group);
+    deck.volHandler(value);
 };
 
-HerculesRMX.jog_wheel = function (channel, control, value, status, group) {
+HerculesRMX.jog_wheel = function(channel, control, value, status, group) {
 // 7F > 40: CCW Slow > Fast - 127 > 64
 // 01 > 3F: CW Slow > Fast - 0 > 63
-  var jogValue = value >=0x40 ? value - 0x80 : value; // -64 to +63, - = CCW, + = CW
-  HerculesRMX.GetDeck(group).jogMove(jogValue);
+    const jogValue = value >=0x40 ? value - 0x80 : value; // -64 to +63, - = CCW, + = CW
+    HerculesRMX.GetDeck(group).jogMove(jogValue);
 };
 
-HerculesRMX.cue = function (channel, control, value, status, group) {
-  var deck = HerculesRMX.GetDeck(group);
-  deck.Buttons.Cue.handleEvent(value);
+HerculesRMX.cue = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Cue.handleEvent(value);
 };
 
-HerculesRMX.beatSync = function (channel, control, value, status, group) {
-  var deck = HerculesRMX.GetDeck(group);
-  deck.Buttons.Sync.handleEvent(value);
+HerculesRMX.beatSync = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Sync.handleEvent(value);
 };
 
-HerculesRMX.rateReset = function (channel, control, value, status, group) {
-  var deck = HerculesRMX.GetDeck(group);
-  deck.Buttons.PitchReset.handleEvent(value);
+HerculesRMX.rateReset = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.PitchReset.handleEvent(value);
 };
 
-HerculesRMX.play = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.PlayPause.handleEvent(value);
+HerculesRMX.play = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.PlayPause.handleEvent(value);
 };
 
-HerculesRMX.stop = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Stop.handleEvent(value);
+HerculesRMX.stop = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Stop.handleEvent(value);
 };
 
-HerculesRMX.shift = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Shift.handleEvent(value);
+HerculesRMX.shift = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Shift.handleEvent(value);
 };
 
-HerculesRMX.keypad1 = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Keypad1.handleEvent(value);
+HerculesRMX.keypad1 = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Keypad1.handleEvent(value);
 };
 
-HerculesRMX.keypad2 = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Keypad2.handleEvent(value);
+HerculesRMX.keypad2 = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Keypad2.handleEvent(value);
 };
 
-HerculesRMX.keypad3 = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Keypad3.handleEvent(value);
+HerculesRMX.keypad3 = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Keypad3.handleEvent(value);
 };
 
-HerculesRMX.keypad4 = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Keypad4.handleEvent(value);
+HerculesRMX.keypad4 = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Keypad4.handleEvent(value);
 };
 
-HerculesRMX.keypad5 = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Keypad5.handleEvent(value);
+HerculesRMX.keypad5 = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Keypad5.handleEvent(value);
 };
 
-HerculesRMX.keypad6 = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Keypad6.handleEvent(value);
+HerculesRMX.keypad6 = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Keypad6.handleEvent(value);
 };
 
-HerculesRMX.next = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Next.handleEvent(value);
+HerculesRMX.next = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Next.handleEvent(value);
 };
 
-HerculesRMX.previous = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Previous.handleEvent(value);
+HerculesRMX.previous = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Previous.handleEvent(value);
 };
 
-HerculesRMX.load = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.Load.handleEvent(value);
+HerculesRMX.load = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.Load.handleEvent(value);
 };
 
-HerculesRMX.cueSelect = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.CueSelect.handleEvent(value);
+HerculesRMX.cueSelect = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.CueSelect.handleEvent(value);
 };
 
-HerculesRMX.sourceSelect = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.SourceSelect.handleEvent(value);
+HerculesRMX.sourceSelect = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.SourceSelect.handleEvent(value);
 };
 
-HerculesRMX.killLow = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.KillLow.handleEvent(value);
-};
-
-
-HerculesRMX.killMid = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.KillMid.handleEvent(value);
+HerculesRMX.killLow = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.KillLow.handleEvent(value);
 };
 
 
-HerculesRMX.killHigh = function (channel, control, value, status, group) {
-   var deck = HerculesRMX.GetDeck(group);
-   deck.Buttons.KillHigh.handleEvent(value);
+HerculesRMX.killMid = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.KillMid.handleEvent(value);
+};
+
+
+HerculesRMX.killHigh = function(channel, control, value, status, group) {
+    const deck = HerculesRMX.GetDeck(group);
+    deck.Buttons.KillHigh.handleEvent(value);
 };
 
 
 
-HerculesRMX.init = function (id) {    // called when the MIDI device is opened & set up
-   HerculesRMX.killLeds();
+HerculesRMX.init = function(id) {    // called when the MIDI device is opened & set up
+    HerculesRMX.killLeds();
 
-   engine.connectControl("[Channel1]","rate","HerculesRMX.rateChange");
-   engine.connectControl("[Channel2]","rate","HerculesRMX.rateChange");
+    engine.connectControl("[Channel1]", "rate", "HerculesRMX.rateChange");
+    engine.connectControl("[Channel2]", "rate", "HerculesRMX.rateChange");
 
-   // Enable soft-takeover for all direct hardware controls
-   engine.softTakeover("[Channel1]","rate",true);
-   engine.softTakeover("[Channel1]","volume",true);
-   engine.softTakeover("[Channel1]","pregain",true);
-   engine.softTakeover("[Channel1]","filterHigh",true);
-   engine.softTakeover("[Channel1]","filterMed",true);
-   engine.softTakeover("[Channel1]","filterLow",true);
-   engine.softTakeover("[Channel2]","rate",true);
-   engine.softTakeover("[Channel2]","volume",true);
-   engine.softTakeover("[Channel2]","pregain",true);
-   engine.softTakeover("[Channel2]","filterHigh",true);
-   engine.softTakeover("[Channel2]","filterMed",true);
-   engine.softTakeover("[Channel2]","filterLow",true);
-   engine.softTakeover("[Master]","crossfader",true);
-   engine.softTakeover("[Master]","headVolume",true);
-   engine.softTakeover("[Master]","headMix",true);
-   engine.softTakeover("[Master]","volume",true);
-   engine.softTakeover("[Master]","balance",true);
-   // does not work, because whole Mic volume and "Talk" button of the skin
-   // does not seem to be matched to controller
-   // engine.softTakeover("[Microphone]","volume",true);
+    // Enable soft-takeover for all direct hardware controls
+    engine.softTakeover("[Channel1]", "rate", true);
+    engine.softTakeover("[Channel1]", "volume", true);
+    engine.softTakeover("[Channel1]", "pregain", true);
+    engine.softTakeover("[Channel1]", "filterHigh", true);
+    engine.softTakeover("[Channel1]", "filterMed", true);
+    engine.softTakeover("[Channel1]", "filterLow", true);
+    engine.softTakeover("[Channel2]", "rate", true);
+    engine.softTakeover("[Channel2]", "volume", true);
+    engine.softTakeover("[Channel2]", "pregain", true);
+    engine.softTakeover("[Channel2]", "filterHigh", true);
+    engine.softTakeover("[Channel2]", "filterMed", true);
+    engine.softTakeover("[Channel2]", "filterLow", true);
+    engine.softTakeover("[Master]", "crossfader", true);
+    engine.softTakeover("[Master]", "headVolume", true);
+    engine.softTakeover("[Master]", "headMix", true);
+    engine.softTakeover("[Master]", "volume", true);
+    engine.softTakeover("[Master]", "balance", true);
+    // does not work, because whole Mic volume and "Talk" button of the skin
+    // does not seem to be matched to controller
+    // engine.softTakeover("[Microphone]","volume",true);
 
-   print ("HerculesRMX id: \""+id+"\" initialized.");
+    print("HerculesRMX id: \""+id+"\" initialized.");
 };
 
 HerculesRMX.shutdown = function() {
-   HerculesRMX.killLeds();
+    HerculesRMX.killLeds();
 
-   print ("HerculesRMX shutdown.");
+    print("HerculesRMX shutdown.");
 };
 
 HerculesRMX.killLeds = function() {
-   HerculesRMX.Buttons.Scratch.setLed(LedState.off);
-   //TODO: remove timers when alsa midi work properly.
-   var button;
-   var time = 20;
-   for (var key in HerculesRMX.Decks.Left.Buttons) {
-      engine.beginTimer(time, "HerculesRMX.Decks.Left.Buttons['" + key + "'].setLed(LedState.off)", true);
-      time = time + 5;
-   }
-   for (var key in HerculesRMX.Decks.Right.Buttons) {
-      engine.beginTimer(time, "HerculesRMX.Decks.Right.Buttons['" + key + "'].setLed(LedState.off)", true);
-      time = time + 5;
-   }
-}
+    HerculesRMX.Buttons.Scratch.setLed(LedState.off);
+    //TODO: remove timers when alsa midi work properly.
+    let button;
+    let time = 20;
+    for (var key in HerculesRMX.Decks.Left.Buttons) {
+        engine.beginTimer(time, "HerculesRMX.Decks.Left.Buttons['" + key + "'].setLed(LedState.off)", true);
+        time = time + 5;
+    }
+    for (var key in HerculesRMX.Decks.Right.Buttons) {
+        engine.beginTimer(time, "HerculesRMX.Decks.Right.Buttons['" + key + "'].setLed(LedState.off)", true);
+        time = time + 5;
+    }
+};
 
 //Rate change event handler to reset sync and reset leds
 //TODO: Need some way to check sync state here.
-HerculesRMX.rateChange = function (value, group) {
-   if (HerculesRMX.Decks.Left.Buttons.Sync.state != ButtonState.pressed) {
-      HerculesRMX.Decks.Left.Buttons.Sync.setLed(LedState.off);
-   }
-   if (HerculesRMX.Decks.Right.Buttons.Sync.state != ButtonState.pressed) {
-      engine.beginTimer(25, "HerculesRMX.Decks.Right.Buttons.Sync.setLed(LedState.off)", true);
-   }
-   if (value != 0.0) {
-      var deck = HerculesRMX.GetDeck(group);
-      engine.beginTimer(30, "HerculesRMX.GetDeck('" + group + "').Buttons.PitchReset.setLed(LedState.off)", true);
-   }
+HerculesRMX.rateChange = function(value, group) {
+    if (HerculesRMX.Decks.Left.Buttons.Sync.state != ButtonState.pressed) {
+        HerculesRMX.Decks.Left.Buttons.Sync.setLed(LedState.off);
+    }
+    if (HerculesRMX.Decks.Right.Buttons.Sync.state != ButtonState.pressed) {
+        engine.beginTimer(25, "HerculesRMX.Decks.Right.Buttons.Sync.setLed(LedState.off)", true);
+    }
+    if (value != 0.0) {
+        const deck = HerculesRMX.GetDeck(group);
+        engine.beginTimer(30, "HerculesRMX.GetDeck('" + group + "').Buttons.PitchReset.setLed(LedState.off)", true);
+    }
 };
 
 //TODO: Keep stop functionality?

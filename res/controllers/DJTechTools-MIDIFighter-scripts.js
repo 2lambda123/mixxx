@@ -29,6 +29,9 @@
 // Fighter. Mixxx would not have a mapping for the MIDI Fighter if it weren't
 // for his generosity.
 
+/**
+ *
+ */
 function MIDIFighter() {}
 
 MIDIFighter.control_map = {
@@ -53,45 +56,45 @@ MIDIFighter.control_map = {
 MIDIFighter.button_mappings = {
 };
 
-MIDIFighter.map_button = function (button, control_object) {
+MIDIFighter.map_button = function(button, control_object) {
     MIDIFighter.button_mappings[button] = control_object;
-}
+};
 
 MIDIFighter.init = function(id) {
     MIDIFighter.id = id;
     print("MIDI Fighter " + MIDIFighter.id + " initialized.");
 
     // Channels are ordered the same way the waveforms are onscreen.
-    MIDIFighter.map_button(1, {'group': '[Channel3]', 'item': 'hotcue_1_activate'});
-    MIDIFighter.map_button(2, {'group': '[Channel3]', 'item': 'hotcue_2_activate'});
-    MIDIFighter.map_button(3, {'group': '[Channel3]', 'item': 'hotcue_3_activate'});
-    MIDIFighter.map_button(4, {'group': '[Channel3]', 'item': 'hotcue_4_activate'});
+    MIDIFighter.map_button(1, {"group": "[Channel3]", "item": "hotcue_1_activate"});
+    MIDIFighter.map_button(2, {"group": "[Channel3]", "item": "hotcue_2_activate"});
+    MIDIFighter.map_button(3, {"group": "[Channel3]", "item": "hotcue_3_activate"});
+    MIDIFighter.map_button(4, {"group": "[Channel3]", "item": "hotcue_4_activate"});
 
-    MIDIFighter.map_button(5, {'group': '[Channel1]', 'item': 'hotcue_1_activate'});
-    MIDIFighter.map_button(6, {'group': '[Channel1]', 'item': 'hotcue_2_activate'});
-    MIDIFighter.map_button(7, {'group': '[Channel1]', 'item': 'hotcue_3_activate'});
-    MIDIFighter.map_button(8, {'group': '[Channel1]', 'item': 'hotcue_4_activate'});
+    MIDIFighter.map_button(5, {"group": "[Channel1]", "item": "hotcue_1_activate"});
+    MIDIFighter.map_button(6, {"group": "[Channel1]", "item": "hotcue_2_activate"});
+    MIDIFighter.map_button(7, {"group": "[Channel1]", "item": "hotcue_3_activate"});
+    MIDIFighter.map_button(8, {"group": "[Channel1]", "item": "hotcue_4_activate"});
 
-    MIDIFighter.map_button(9, {'group': '[Channel2]', 'item': 'hotcue_1_activate'});
-    MIDIFighter.map_button(10, {'group': '[Channel2]', 'item': 'hotcue_2_activate'});
-    MIDIFighter.map_button(11, {'group': '[Channel2]', 'item': 'hotcue_3_activate'});
-    MIDIFighter.map_button(12, {'group': '[Channel2]', 'item': 'hotcue_4_activate'});
+    MIDIFighter.map_button(9, {"group": "[Channel2]", "item": "hotcue_1_activate"});
+    MIDIFighter.map_button(10, {"group": "[Channel2]", "item": "hotcue_2_activate"});
+    MIDIFighter.map_button(11, {"group": "[Channel2]", "item": "hotcue_3_activate"});
+    MIDIFighter.map_button(12, {"group": "[Channel2]", "item": "hotcue_4_activate"});
 
-    MIDIFighter.map_button(13, {'group': '[Channel4]', 'item': 'hotcue_1_activate'});
-    MIDIFighter.map_button(14, {'group': '[Channel4]', 'item': 'hotcue_2_activate'});
-    MIDIFighter.map_button(15, {'group': '[Channel4]', 'item': 'hotcue_3_activate'});
-    MIDIFighter.map_button(16, {'group': '[Channel4]', 'item': 'hotcue_4_activate'});
-}
+    MIDIFighter.map_button(13, {"group": "[Channel4]", "item": "hotcue_1_activate"});
+    MIDIFighter.map_button(14, {"group": "[Channel4]", "item": "hotcue_2_activate"});
+    MIDIFighter.map_button(15, {"group": "[Channel4]", "item": "hotcue_3_activate"});
+    MIDIFighter.map_button(16, {"group": "[Channel4]", "item": "hotcue_4_activate"});
+};
 
 MIDIFighter.shutdown = function() {
     print("MIDI Fighter " + MIDIFighter.id + " shutting down.");
-}
+};
 
-MIDIFighter.button_down = function (channel, control, value, status) {
+MIDIFighter.button_down = function(channel, control, value, status) {
     //print("Button down " + channel + " " + control + " " + value);
-    var button_number = MIDIFighter.control_map[control];
-    var button_name = 'button' + button_number;
-    var button_name_down = 'button' + button_number + "_down";
+    const button_number = MIDIFighter.control_map[control];
+    const button_name = "button" + button_number;
+    const button_name_down = "button" + button_number + "_down";
     if (button_number in MIDIFighter.button_mappings) {
         var control = MIDIFighter.button_mappings[button_number];
         engine.setValue(control.group, control.item, 1);
@@ -100,38 +103,38 @@ MIDIFighter.button_down = function (channel, control, value, status) {
     } else if (button_name in MIDIFighter) {
         MIDIFighter[button_name](1);
     }
-}
+};
 
-MIDIFighter.button_up = function (channel, control, value, status) {
+MIDIFighter.button_up = function(channel, control, value, status) {
     //print("Button up " + channel + " " + control + " " + value);
-    var button_number = MIDIFighter.control_map[control];
-    var button_name = 'button' + button_number;
-    var button_name_up = 'button' + button_number + "_up";
+    const button_number = MIDIFighter.control_map[control];
+    const button_name = "button" + button_number;
+    const button_name_up = "button" + button_number + "_up";
 
     if (button_number in MIDIFighter.button_mappings) {
         var control = MIDIFighter.button_mappings[button_number];
         engine.setValue(control.group, control.item, 0);
     } else if (button_name_up in MIDIFighter) {
-        print ("Calling " + button_name_up);
+        print("Calling " + button_name_up);
         MIDIFighter[button_name_up]();
     } else if (button_name in MIDIFighter) {
         MIDIFighter[button_name](0);
     }
-}
+};
 
 MIDIFighter.button1_down = function() {
     // Example, if no mapping is made for button 1 then this will be called when
     // button 1 is pressed.
-}
+};
 
 MIDIFighter.button1_up = function() {
     // Example, if no mapping is made for button 1 then this will be called when
     // button 1 is released.
-}
+};
 
 MIDIFighter.button1 = function() {
     // Example, if no mapping is given for button 1, and no button1_up or
     // button1_down method is defined, then this function will be called with
     // the argument 1 for the button being pressed and 0 for the button being
     // released.
-}
+};

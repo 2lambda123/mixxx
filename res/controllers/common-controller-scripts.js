@@ -21,8 +21,8 @@
 
 // Returns an ASCII byte array for the string
 String.prototype.toInt = function() {
-    var a = new Array();
-    for (var i = 0; i < this.length; i++) {
+    const a = new Array();
+    for (let i = 0; i < this.length; i++) {
         a[i] = this.charCodeAt(i);
     }
     return a;
@@ -32,6 +32,7 @@ String.prototype.toInt = function() {
 
 /**
  * Prints a message to the terminal and the log file.
+ *
  * @param {string} message - The log message.
  * @deprecated Use console.log()/console.warn()/console.debug() instead.
  */
@@ -54,9 +55,9 @@ var stringifyObject = function(obj, maxdepth, checked, prefix) {
         if (maxdepth > 0 && typeof obj === "object" && obj !== null &&
             Object.getPrototypeOf(obj) !== "" && !arrayContains(checked, obj)) {
             checked.push(obj);
-            var output = "{\n";
-            for (var property in obj) {
-                var value = obj[property];
+            let output = "{\n";
+            for (const property in obj) {
+                const value = obj[property];
                 if (typeof value === "function") { continue; }
                 output += prefix + property + ": "
                     + stringifyObject(value, maxdepth - 1, checked, prefix + "  ")
@@ -69,7 +70,7 @@ var stringifyObject = function(obj, maxdepth, checked, prefix) {
 };
 
 var arrayContains = function(array, elem) {
-    for (var i = 0; i < array.length; i++) {
+    for (let i = 0; i < array.length; i++) {
         if (array[i] === elem) { return true; }
     }
     return false;
@@ -79,7 +80,7 @@ var arrayContains = function(array, elem) {
 
 // eslint-disable-next-line no-unused-vars
 var secondstominutes = function(secs) {
-    var m = (secs / 60) | 0;
+    const m = (secs / 60) | 0;
 
     return (m < 10 ? "0" + m : m)
         + ":"
@@ -88,9 +89,9 @@ var secondstominutes = function(secs) {
 
 // eslint-disable-next-line no-unused-vars
 var msecondstominutes = function(msecs) {
-    var m = (msecs / 60000) | 0;
+    const m = (msecs / 60000) | 0;
     msecs %= 60000;
-    var secs = (msecs / 1000) | 0;
+    const secs = (msecs / 1000) | 0;
     msecs %= 1000;
     msecs = Math.round(msecs * 100 / 1000);
     if (msecs === 100) { msecs = 99; }
@@ -149,7 +150,7 @@ script.midiDebug = function(channel, control, value, status, group) {
 
 // Returns the deck number of a "ChannelN" or "SamplerN" group
 script.deckFromGroup = function(group) {
-    var deck = 0;
+    let deck = 0;
     if (group.substring(2, 8) === "hannel") {
         // Extract deck number from the group text
         deck = group.substring(8, group.length - 1);
@@ -173,7 +174,7 @@ script.deckFromGroup = function(group) {
    Output:  none
    -------- ------------------------------------------------------ */
 script.bindConnections = function(group, controlsToFunctions, remove) {
-    var control;
+    let control;
     remove = (remove === undefined) ? false : remove;
 
     for (control in controlsToFunctions) {
@@ -255,7 +256,7 @@ script.absoluteLinInverse = function(value, low, high, min, max) {
     if (!max) {
         max = 127;
     }
-    var result = (((value - low) * (max - min)) / (high - low)) + min;
+    const result = (((value - low) * (max - min)) / (high - low)) + min;
     if (result < min) {
         return min;
     } else if (result > max) {
@@ -282,7 +283,7 @@ script.absoluteNonLin = function(value, low, mid, high, min, max) {
     if (!max) {
         max = 127;
     }
-    var center = (max - min) / 2;
+    const center = (max - min) / 2;
     if (value === center || value === Math.round(center)) {
         return mid;
     } else if (value < center) {
@@ -307,8 +308,8 @@ script.absoluteNonLinInverse = function(value, low, mid, high, min, max) {
     if (!max) {
         max = 127;
     }
-    var center = (max - min) / 2;
-    var result;
+    const center = (max - min) / 2;
+    let result;
 
     if (value === mid) {
         return center;
@@ -390,9 +391,9 @@ script.midiPitch = function(LSB, MSB, status) {
         print("Script.midiPitch: Error, not a MIDI pitch (0xEn) message: " + status);
         return false;
     }
-    var value = (MSB << 7) | LSB;  // Construct the 14-bit number
+    const value = (MSB << 7) | LSB;  // Construct the 14-bit number
     // Range is 0x0000..0x3FFF center @ 0x2000, i.e. 0..16383 center @ 8192
-    var rate = (value - 8192) / 8191;
+    const rate = (value - 8192) / 8191;
     //     print("Script.Pitch: MSB="+MSB+", LSB="+LSB+", value="+value+", rate="+rate);
     return rate;
 };
@@ -477,8 +478,8 @@ bpm.tap = [];   // Tap sample values
    Output:  -
    -------- ------------------------------------------------------ */
 bpm.tapButton = function(deck) {
-    var now = new Date() / 1000; // Current time in seconds
-    var tapDelta = now - bpm.tapTime;
+    const now = new Date() / 1000; // Current time in seconds
+    const tapDelta = now - bpm.tapTime;
     bpm.tapTime = now;
 
     // assign tapDelta in cases where the button has not been pressed previously
@@ -501,19 +502,19 @@ bpm.tapButton = function(deck) {
     bpm.tap.push(60 / tapDelta);
     // Keep the last 8 samples for averaging
     if (bpm.tap.length > 8) { bpm.tap.shift(); }
-    var sum = 0;
-    for (var i=0; i<bpm.tap.length; i++) {
+    let sum = 0;
+    for (let i=0; i<bpm.tap.length; i++) {
         sum += bpm.tap[i];
     }
-    var average = sum / bpm.tap.length;
+    const average = sum / bpm.tap.length;
 
-    var group = "[Channel" + deck + "]";
+    const group = "[Channel" + deck + "]";
 
     // "bpm" was changed in 1.10 to reflect the *adjusted* bpm, but I presume it
     // was supposed to return the tracks bpm (which it did before the change).
     // "file_bpm" is supposed to return the set BPM of the loaded track of the
     // channel.
-    var fRateScale = average/engine.getValue(group, "file_bpm");
+    let fRateScale = average/engine.getValue(group, "file_bpm");
 
     // Adjust the rate:
     fRateScale = (fRateScale - 1.) / engine.getValue(group, "rateRange");
@@ -547,8 +548,8 @@ var Controller = function() {
 
 Controller.prototype.addButton = function(buttonName, button, eventHandler) {
     if (eventHandler) {
-        var executionEnvironment = this;
-        var handler = function(value) {
+        const executionEnvironment = this;
+        const handler = function(value) {
             button.state = value;
             executionEnvironment[eventHandler](value);
         };
@@ -587,7 +588,7 @@ var Control = function(mappedFunction, softMode) {
 };
 
 Control.prototype.setValue = function(group, inputValue) {
-    var outputValue = 0;
+    let outputValue = 0;
     if (inputValue <= this.midInput) {
         outputValue = this.minOutput
             + ((inputValue - this.minInput) / (this.midInput - this.minInput))
@@ -598,8 +599,8 @@ Control.prototype.setValue = function(group, inputValue) {
             * (this.maxOutput - this.midOutput);
     }
     if (this.softMode) {
-        var currentValue = engine.getValue(group, this.mappedFunction);
-        var currentRelative = 0.0;
+        const currentValue = engine.getValue(group, this.mappedFunction);
+        let currentRelative = 0.0;
         if (currentValue <= this.midOutput) {
             currentRelative = this.minInput
                 + ((currentValue - this.minOutput) / (this.midOutput - this.minOutput))

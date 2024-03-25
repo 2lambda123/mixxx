@@ -17,7 +17,7 @@ VCI102.lockButton = ["keylock", "keylock"];
 VCI102.sizeButton = ["beatloop_size", "beatloop_size"];
 
 VCI102.refreshLED = function(ch) {
-    var deck = VCI102.deck[ch];
+    const deck = VCI102.deck[ch];
     VCI102.fxButton[ch % 2].forEach(function(fx) {
         engine.trigger(fx, "group_" + deck + "_enable");
     });
@@ -80,7 +80,7 @@ VCI102.slipSrc = [0, 0, 0, 0];  // number of enabled slip-source controls
 VCI102.slipReady = [true, true, true, true];  // false in slip reenabling wait
 
 VCI102.slip = function(value, group, key) {
-    var ch = VCI102.deck.indexOf(group);
+    const ch = VCI102.deck.indexOf(group);
     if (key == "play") {
         if (value) {
             VCI102.slipSrc[ch] %= 64;  // reset 7th bit if start
@@ -109,7 +109,7 @@ VCI102.scratchTimer = [0, 0, 0, 0];
 VCI102.isBraking = [false, false, false, false];
 
 VCI102.scratchEnable = function(ch, midino, value, status, group) {
-    var deck = ch + 1;
+    const deck = ch + 1;
     if (value) {
         if (VCI102.scratchTimer[ch]) {
             engine.stopTimer(VCI102.scratchTimer[ch]);
@@ -125,7 +125,7 @@ VCI102.scratchEnable = function(ch, midino, value, status, group) {
         }
     } else if (engine.isScratching(deck)) {
         VCI102.scratchTimer[ch] = engine.beginTimer(20, function() {
-            var vel = Math.abs(engine.getValue(group, "scratch2"));
+            const vel = Math.abs(engine.getValue(group, "scratch2"));
             if (vel < 1 && (vel < 1 / 64 || engine.getValue(group, "play"))) {
                 if (VCI102.scratchTimer[ch]) {
                     engine.stopTimer(VCI102.scratchTimer[ch]);
@@ -144,7 +144,7 @@ VCI102.scratchEnable = function(ch, midino, value, status, group) {
 };
 
 VCI102.jog = function(ch, midino, value, status, group) {
-    var deck = ch + 1;
+    const deck = ch + 1;
     value -= 64;
     if (engine.isScratching(deck)) {
         engine.scratchTick(deck, value);
@@ -194,8 +194,8 @@ VCI102.rateLSB = function(ch, midino, value, status, group) {
 
 VCI102.rateQuantizedLSB = function(ch, midino, value, status, group) {
     // not change "bpm" direct but by "rate" to go through soft takeover
-    var bpm = engine.getValue(group, "file_bpm");
-    var range = engine.getValue(group, "rateRange");
+    const bpm = engine.getValue(group, "file_bpm");
+    const range = engine.getValue(group, "rateRange");
     engine.setValue(group, "rate", (Math.round(
         (VCI102.rate(ch, value) * range + 1) * bpm) / bpm - 1) / range);
 };
@@ -253,7 +253,7 @@ VCI102.parameter = function(ch, group, key, value) {
 };
 
 VCI102.parameter1 = function(ch, midino, value, status, group) {
-    var n = engine.getValue(group, "focused_effect");
+    const n = engine.getValue(group, "focused_effect");
     if (n) {
         VCI102.parameter(ch, VCI102.slot(group, n), "parameter1", value);
     } else {
@@ -262,7 +262,7 @@ VCI102.parameter1 = function(ch, midino, value, status, group) {
 };
 
 VCI102.parameter2 = function(ch, midino, value, status, group) {
-    var n = engine.getValue(group, "focused_effect");
+    const n = engine.getValue(group, "focused_effect");
     if (n) {
         VCI102.parameter(ch, VCI102.slot(group, n), "parameter2", value);
     } else {
@@ -271,7 +271,7 @@ VCI102.parameter2 = function(ch, midino, value, status, group) {
 };
 
 VCI102.parameter3 = function(ch, midino, value, status, group) {
-    var n = engine.getValue(group, "focused_effect");
+    const n = engine.getValue(group, "focused_effect");
     if (n) {
         VCI102.parameter(ch, VCI102.slot(group, n), "parameter3", value);
     } else {
@@ -294,7 +294,7 @@ VCI102.mix_toggle = function(ch, midino, value, status, group) {
 };
 
 VCI102.parameter4 = function(ch, midino, value, status, group) {
-    var n = engine.getValue(group, "focused_effect");
+    const n = engine.getValue(group, "focused_effect");
     if (VCI102.mix_enabled[ch]) {
         VCI102.set(group, "mix", value);
     } else if (n) {
@@ -314,7 +314,7 @@ VCI102.no_slot = function(ch, midino, value, status, group) {
 VCI102.next_slot = function(ch, midino, value, status, group) {
     if (value) {
         engine.setValue(group, "focused_effect",
-                        engine.getValue(group, "focused_effect") % 3 + 1);
+            engine.getValue(group, "focused_effect") % 3 + 1);
     }
 };
 
@@ -349,12 +349,12 @@ VCI102.loop_scale = function(ch, group, scale) {
         // scale beatjump_size of the other Deck if shift of it
         group = VCI102.Deck[1 - ch % 2];
         engine.setValue(group, "beatjump_size",
-                        engine.getValue(group, "beatjump_size") * scale);
+            engine.getValue(group, "beatjump_size") * scale);
     } else if (engine.getValue(group, "loop_enabled")) {
         engine.setValue(group, "loop_scale", scale);
     } else {
         engine.setValue(group, "beatloop_size",
-                        engine.getValue(group, "beatloop_size") * scale);
+            engine.getValue(group, "beatloop_size") * scale);
     }
 };
 
@@ -387,7 +387,7 @@ VCI102.solo = function(ch, midino, value, status, group) {
 };
 
 VCI102.shutdown = function() {
-    var i, j;
+    let i, j;
     for (i = 0x90; i < 0x94; i++) {
         for (j = 0x22; j < 0x3B; j++) {
             midi.sendShortMsg(i, j, 0);
@@ -396,13 +396,18 @@ VCI102.shutdown = function() {
 };
 
 VCI102.init = function(id, debug) {
-    var LEDfx = [0x3A, 0x38];
-    var LEDlock = 0x2D;
-    var LEDsize = [
+    const LEDfx = [0x3A, 0x38];
+    const LEDlock = 0x2D;
+    const LEDsize = [
         [0x33, 0x29],
         [0x29, 0x26]
     ];
 
+    /**
+     * @param value
+     * @param group
+     * @param key
+     */
     function headMix(value, group, key) {
         if (value) {
             if (engine.getValue("[Master]", "headMix") == 1) {
@@ -417,6 +422,10 @@ VCI102.init = function(id, debug) {
         }
     }
 
+    /**
+     * @param ch
+     * @param i
+     */
     function makeLEDfx(ch, i) {
         return function(value, group, key) {
             if (group == VCI102.fxButton[ch % 2][i]) {
@@ -425,6 +434,9 @@ VCI102.init = function(id, debug) {
         };
     }
 
+    /**
+     * @param ch
+     */
     function makeLEDlock(ch) {
         return function(value, group, key) {
             if (key == VCI102.lockButton[ch % 2]) {
@@ -433,6 +445,9 @@ VCI102.init = function(id, debug) {
         };
     }
 
+    /**
+     * @param ch
+     */
     function makeLEDsize(ch) {
         return function(value, group, key) {
             if (key == VCI102.sizeButton[ch % 2]) {
@@ -445,9 +460,9 @@ VCI102.init = function(id, debug) {
     }
 
     VCI102.deck.forEach(function(deck, i) {
-        var enable = "group_" + deck + "_enable";
-        var lock = makeLEDlock(i);
-        var size = makeLEDsize(i);
+        const enable = "group_" + deck + "_enable";
+        const lock = makeLEDlock(i);
+        const size = makeLEDsize(i);
         [makeLEDfx(i, 0), makeLEDfx(i, 1)].forEach(function(led, j) {
             engine.connectControl(VCI102.fx12[j], enable, led);
             engine.connectControl(VCI102.fx34[j], enable, led);
@@ -459,7 +474,7 @@ VCI102.init = function(id, debug) {
             engine.connectControl(deck, key, size);
         });
         ["hotcue_1_activate", "hotcue_2_activate", "loop_enabled", "reverse",
-         "play"].forEach(function(key) {
+            "play"].forEach(function(key) {
             engine.connectControl(deck, key, VCI102.slip);
         });
         engine.connectControl(deck, "pfl", headMix);

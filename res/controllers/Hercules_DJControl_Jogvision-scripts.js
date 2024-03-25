@@ -232,8 +232,8 @@ var DJCJV = {
     },
     // Beat helper
     "beatHelp": function() {
-        var diff = engine.getValue("[Channel1]", "bpm") - engine.getValue("[Channel2]", "bpm");
-        var move = 0;
+        const diff = engine.getValue("[Channel1]", "bpm") - engine.getValue("[Channel2]", "bpm");
+        let move = 0;
 
         if (diff < (-1 * CFG.fine.beatHelpSensitivity)) {
             // Move ch1 pitch up or ch2 pitch down
@@ -258,8 +258,8 @@ var DJCJV = {
         if ((value === 1) || (CFG.user.beatActiveMode === "off")) {
             return;
         }
-        var central = DJCJV.Channel[group].central;
-        var pos = DJCJV.Channel[group].beatPosition;
+        const central = DJCJV.Channel[group].central;
+        const pos = DJCJV.Channel[group].beatPosition;
 
         if (CFG.user.beatActiveMode === "normal") {
             midi.sendShortMsg(central, DJCJV.led.beat1, pos === 1 ? DJCJV.other.on : DJCJV.other.off);
@@ -322,7 +322,7 @@ var DJCJV = {
     },
     // Jogwheels inner LED display - Play position
     "wheelInnerUpdate": function(value, group, _control) {
-        var playPos = value * 127;
+        const playPos = value * 127;
         midi.sendShortMsg(DJCJV.Channel[group].deck, DJCJV.led.innerJog, playPos);
 
         // Also update the "track" led
@@ -334,8 +334,8 @@ var DJCJV = {
     },
     // Function to rotate jogs' outer led (borrowed from the 'Pioneer-DDJ-SX-scripts.js' mapping)
     "updateJogLeds": function(value, group, control) {
-        var elapsedTime = value * engine.getValue(group, "duration");
-        var wheelPos = ((value >= 0) ? 0 : 127) + 1 + ((DJCJV.other.ledSpeed * elapsedTime) % 127);
+        const elapsedTime = value * engine.getValue(group, "duration");
+        const wheelPos = ((value >= 0) ? 0 : 127) + 1 + ((DJCJV.other.ledSpeed * elapsedTime) % 127);
 
         // Only send midi message when the position is actually updated.
         if (DJCJV.Channel[group].rotation !== wheelPos) {
@@ -379,9 +379,9 @@ var DJCJV = {
     },
     // Filter (AIR FX)
     "Filter": function(channel, control, value, status, group) {
-        var deck = group.substr(18, 10);
+        const deck = group.substr(18, 10);
         // Filter ---------------------------------------> High-pass : Low-pass
-        var delta = DJCJV.Channel[deck].shiftPressed ? (value / 255) : (-1 * (value / 255));
+        const delta = DJCJV.Channel[deck].shiftPressed ? (value / 255) : (-1 * (value / 255));
         engine.setValue(group, "super1", 0.5 + delta);
     },
     // Sniff decks' SHIFT presses and store them
@@ -416,7 +416,7 @@ var DJCJV = {
             engine.setValue(group, "pitch_"+(value === DJCJV.other.left ? "down" : "up"), 1);
         } else {
             // beatjump_size -------------------------------------------------------------------> half : double
-            var newBJS = engine.getValue(group, "beatjump_size") * ((value === DJCJV.other.left) ? 1/2 : 2);
+            const newBJS = engine.getValue(group, "beatjump_size") * ((value === DJCJV.other.left) ? 1/2 : 2);
             engine.setValue(group, "beatjump_size", (newBJS >= 512) ? 512 : (newBJS <= 1/32 ? 1/32 : newBJS)); // Prevent moving beyond lower/upper limits
         }
     },
@@ -432,7 +432,7 @@ var DJCJV = {
     },
     // FX(Mix) Knob changes the mix level for the effects
     "mixLevel": function(channel, control, value, status, group) {
-        var mixValue = engine.getValue(group, "mix");
+        const mixValue = engine.getValue(group, "mix");
         // modify effects mix level -------------------------------------------------------------> decrease : increase (in mixGainFactor steps)
         engine.setValue(group, "mix", mixValue + (CFG.fine.mixGainFactor * (value === DJCJV.other.left ? -1 : 1)));
     },
@@ -476,7 +476,7 @@ var DJCJV = {
         // If NOT playing, and MODE button is pressed, move 'playposition'
         if ((DJCJV.Channel[group].modePressed) && (engine.getValue(group, "play") !== 1)) {
             // new_playposition moves -------------------------------------------------> ( backward : forward ) times CFG.fine.quickMoveFactor
-            var newpos = engine.getValue(group, "playposition") + ((value === DJCJV.other.left ? -1 : 1) * CFG.fine.quickMoveFactor);
+            const newpos = engine.getValue(group, "playposition") + ((value === DJCJV.other.left ? -1 : 1) * CFG.fine.quickMoveFactor);
             // Set playposition to ------------------------> start :       end        : new_playposition
             engine.setValue(group, "playposition", newpos <= 0 ? 0 : (newpos >= 1 ? 1 : newpos));
         } else if (engine.isScratching(DJCJV.Channel[group].n)) {
