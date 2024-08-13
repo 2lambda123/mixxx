@@ -64,7 +64,7 @@ repos:
           ]
         exclude: ^(packaging/wix/LICENSE.rtf|src/dialog/dlgabout\.cpp|.*\.(?:pot?|ts|wxl|svg))$
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.8.0
+    rev: v9.9.0
     hooks:
       - id: eslint
         args: [--fix, --report-unused-disable-directives]
