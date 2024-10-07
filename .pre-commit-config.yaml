@@ -32,7 +32,7 @@ default_language_version:
   rust: 1.64.0
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: fix-byte-order-marker
         exclude: ^.*(\.cbproj|\.groupproj|\.props|\.sln|\.vcxproj|\.vcxproj.filters)$
@@ -64,14 +64,14 @@ repos:
           ]
         exclude: ^(packaging/wix/LICENSE.rtf|src/dialog/dlgabout\.cpp|.*\.(?:pot?|ts|wxl|svg))$
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.11.1
+    rev: v9.12.0
     hooks:
       - id: eslint
         args: [--fix, --report-unused-disable-directives]
         files: \.m?js$
         types: [file]
         stages:
-          - commit
+          - Nonepre-commitNone
           - manual
         additional_dependencies:
           - eslint@^v8.6.0
@@ -84,7 +84,7 @@ repos:
         entry: python tools/clang_format.py
         require_serial: true
         stages:
-          - commit
+          - Nonepre-commitNone
           - manual
         language: python
         additional_dependencies:
@@ -136,7 +136,7 @@ repos:
         types: [text]
         files: ^.*\.qss$
         stages:
-          - commit
+          - Nonepre-commitNone
           - manual
       - id: changelog
         name: changelog
